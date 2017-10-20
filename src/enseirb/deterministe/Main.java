@@ -23,10 +23,4 @@ public class Main {
         new LonerCentralized(tp, NB_NODE);
         new JViewer(tp);
     }
-
-    public int getDensity(Topology tp) {
-        int nbLinks = tp.getLinks().size();
-        int nbNodes = tp.getNodes().size();
-        return nbLinks * 2 / (nbNodes*(nbNodes - 1));
-    }
 }
