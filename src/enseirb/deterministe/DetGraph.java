@@ -1,72 +1,116 @@
 package enseirb.deterministe;
 
 import jbotsim.Link;
-import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsim.event.ClockListener;
-import jbotsim.ui.JViewer;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class DetGraph implements ClockListener {
 
+    private static final Logger log = Logger.getLogger(DetGraph.class);
+    private static final String LOGGER = "[DET][GRAPH]";
+    private boolean START  = true;
     private int nbNodes;
-    private Topology tp;
-    private List<Link> links;
-    private int HOP = 0;
+    Topology tp;
+    List<Link> links = new ArrayList<>();
+    List<Link> innerLinks = new ArrayList<>();
 
-
-
-    public DetGraph (int nbNodes, Topology tp){
+    public DetGraph (int nbNodes, int width, int height){
+        BasicConfigurator.configure();
         this.nbNodes = nbNodes;
-        this.tp = tp;
+        this.tp = new Topology(width, height);
         this.tp.disableWireless();
         this.tp.addClockListener(this);
         this.tp.setClockSpeed(1000);
     }
 
-    public Topology createGraph(int nbNodes, Topology tp){
-        double angle = 2*Math.PI/nbNodes;
+    public void createGraph(int x, int y, int radius){
+        double angle = 2 * Math.PI / nbNodes;
         for ( int k = 0 ; k < nbNodes ; k++){
-            tp.addNode(200+100*Math.cos(angle*k), 200+100*Math.sin(angle*k));
-            System.out.println(" node " + tp.getNodes().get(k).getID());
+            this.tp.addNode(x + radius * Math.cos(angle*k), y + radius * Math.sin(angle*k));
+            log.info(String.format("%s[createGraph] node %s", LOGGER, this.tp.getNodes().get(k).getID()));
             if(k >= 1){
-                Link tmp = new Link(tp.getNodes().get(k-1),tp.getNodes().get(k));
-                tp.addLink(tmp);
-                //links.add(tmp);
+                this.tp.addLink(
+                        new Link(
+                                this.tp.getNodes().get(k-1),
+                                this.tp.getNodes().get(k)
+                        )
+                );
             }
             if (k == nbNodes - 1){
-                Link tmp = new Link(tp.getNodes().get(0),tp.getNodes().get(k));
-                tp.addLink(tmp);
+                this.tp.addLink(
+                        new Link(
+                                this.tp.getNodes().get(k),
+                                this.tp.getNodes().get(0)
+                        )
+                );
             }
-
-            this.links = tp.getLinks();
-            System.out.println(links);
         }
-        return tp;
-
+        this.links = this.tp.getLinks();
     }
 
+    public void addInnerLinks(int jump) {
+        for (int i = 0; i < nbNodes - nbNodes / jump + 1; i = i + nbNodes / jump) {
+            if (i < nbNodes - nbNodes / jump) {
+                Link innerLink = new Link(this.tp.getNodes().get(i), this.tp.getNodes().get(i + nbNodes / jump));
+                this.tp.addLink(innerLink);
+                this.innerLinks.add(innerLink);
+            }
+            if (i == nbNodes - nbNodes / jump) {
+                Link innerLink = new Link(this.tp.getNodes().get(i), this.tp.getNodes().get(0));
+                this.tp.addLink(innerLink);
+                this.innerLinks.add(innerLink);
+            }
+        }
+    }
 
+    public double getDensity() {
+        int nbLinks = this.tp.getLinks().size();
+        int nbNodes = this.tp.getNodes().size();
+        return nbLinks * 2 / (double)(nbNodes*(nbNodes - 1));
+    }
 
     public void onClock(){
-        tp.removeLink((Link)links.get(HOP));
-        if (this.HOP == 0) {
-            Link link = new Link((Node)tp.getNodes().get(this.nbNodes - 1), (Node)tp.getNodes().get(0));
-            System.out.println("links added " + link);
-            tp.addLink(link);
-            ++this.HOP;
-        } else if (this.HOP < this.nbNodes - 1) {
-            System.out.println("links added " + links.get(this.HOP - 1));
-            tp.addLink((Link)links.get(HOP - 1));
-            ++this.HOP;
-        } else {
-            System.out.println("links added " + links.get(this.HOP - 1));
-            tp.addLink((Link)links.get(HOP - 1));
-            this.HOP = 0;
+        if (this.START) {
+            if (this.links.size() != 0) {
+                log.trace(String.format("%s[onClock] start",LOGGER));
+                this.tp.removeLink(this.links.get(0));
+                if (this.innerLinks.size() != 0) {
+                    this.tp.removeLink(this.innerLinks.get(0));
+                }
+                this.START = false;
+            }
         }
-
+        dynamicCircularLinks(this.links, false);
+        if (innerLinks.size() != 0) {
+            dynamicCircularLinks(this.innerLinks, true);
+        }
+        log.info(String.format("%s[onClock] list links topo : %s", LOGGER, this.tp.getLinks()));
+        log.info(String.format("%s[onClock] list outer links saved : %s", LOGGER, this.links));
+        log.info(String.format("%s[onClock] list inner links saved : %s", LOGGER, this.innerLinks));
+        log.info(String.format("%s[onClock] density : %s", LOGGER, this.getDensity()));
     }
 
-
-
+    private void dynamicCircularLinks(List<Link> savedLinks, boolean direction) {
+        try {
+            savedLinks.forEach(linkSaved -> {
+                if (this.tp.getLinks().stream().noneMatch(link -> link.equals(linkSaved))) {
+                    int linkSavedIndex = savedLinks.indexOf(linkSaved);
+                    log.info(String.format("%s[onClock] link missing : %s", LOGGER, linkSaved));
+                    log.info(String.format("%s[onClock] link missing index : %s", LOGGER, linkSavedIndex));
+                    if (direction ? linkSavedIndex > 0 : linkSavedIndex < savedLinks.size() - 1) {
+                        this.tp.removeLink(savedLinks.get(direction ? linkSavedIndex - 1 : linkSavedIndex + 1));
+                    } else {
+                        this.tp.removeLink(savedLinks.get(direction ? savedLinks.size() - 1 : 0));
+                    }
+                    this.tp.addLink(linkSaved);
+                    throw new BreakException();
+                }
+            });
+        } catch (BreakException ignored) { }
+    }
 }
