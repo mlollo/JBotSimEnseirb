@@ -10,7 +10,8 @@ public class Main{
 
         DetGraph graph = new DetGraph(nbNodes, width, height);
         graph.createGraph(width/2, height/2, height/4);
-        graph.addInnerLinks(5);
+       // graph.addInnerLinks(5);
+
         new JViewer(graph.tp);
     }
 }
