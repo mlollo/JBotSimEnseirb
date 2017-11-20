@@ -26,9 +26,9 @@ public class Main{
         /*Nombre de noeuds*/
         int nbNodes = 25;
 
-        DetGraph graph = new DetGraph(nbNodes, width, height);
-        graph.createGraph(width/2, height/2, height/4);
-        //graph.addInnerLinks(5);
+        DetGraph graph = new DetGraph(nbNodes, width/2, height/2);
+        graph.createGraph(width/4, height/4, height/8);
+        graph.addInnerLinks(5);
 
         log.info(String.format("%s[Init JViewer]", LOGGER));
         new JViewer(graph.tp);
