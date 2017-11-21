@@ -28,19 +28,20 @@ public class DynamicMain {
 
     private static int width = 1920;   /*Resolution de la fenêtre JBotSim*/
     private static int height = 1080;  /*Resolution de la fenêtre JBotSim*/
-    private static int nbNodes = 25;   /*Nombre de noeuds*/
+    private static int nbNodes = 5;   /*Nombre de noeuds*/
     private static double round = DynamicTopologyGenerator.generateRound( 3, 1.000001, 2);
 
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
         List<Link> links = DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8);
-        DynamicTopology dynamicTopology = new DynamicTopology(tp, links, DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 5));
+        DynamicTopology dynamicTopology = new DynamicTopology(tp, links);
+        //DynamicTopology dynamicTopology = new DynamicTopology(tp, links, DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 5));
         tp.addClockListener(dynamicTopology::onClock);
         tp.addStartListener(dynamicTopology::onStart);
 
         log.info(String.format("%s[Init JViewer]", LOGGER));
-        tp.setClockSpeed((int)0.1);
+        tp.setClockSpeed((int)0.01);
         tp.start();
         new JViewer(tp);
     }
