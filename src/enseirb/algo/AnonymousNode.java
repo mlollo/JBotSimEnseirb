@@ -1,5 +1,6 @@
 package enseirb.algo;
 
+import enseirb.deterministe.DynamicTopologyGenerator;
 import jbotsim.Message;
 import jbotsim.Node;
 
@@ -22,6 +23,16 @@ public class AnonymousNode extends Node{
     private double nodeNumber;
     private int initialTime =0 ;
 
+    public AnonymousNode(){
+        this.delta = 2;
+        this.c = 1.000001;
+        this.energy = 1;
+        this.k = 4;
+        this.initialTime = 0;
+        this.halt = false;
+        this.round = DynamicTopologyGenerator.generateRound(this.k, this.c, this.delta);
+    }
+
     public AnonymousNode(double r){
         this.delta = 2;
         this.c = 1.000001;
@@ -31,13 +42,10 @@ public class AnonymousNode extends Node{
         this.k = 4;
         this.initialTime = 0;
         this.halt = false;
-
-
     }
 
     public AnonymousNode(double round, double delta){
         this.round = (int) Math.ceil((k/2)*(3*k+7)+ Math.log(k) + (c + 1) * ((Math.pow(2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log(2*delta))- Math.pow(2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log(2*delta),2)));
-
         this.delta = delta;
         this.energy = 1;
 
