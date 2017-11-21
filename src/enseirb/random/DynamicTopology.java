@@ -1,4 +1,4 @@
-package enseirb.deterministe;
+package enseirb.random;
 
 import jbotsim.Link;
 import jbotsim.Node;
@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class DynamicTopology implements StartListener, ClockListener{
 
@@ -27,6 +28,8 @@ public class DynamicTopology implements StartListener, ClockListener{
     public DynamicTopology(Topology tp, List<Link> links){
         this.tp = tp;
         this.links = links;
+        tp.addStartListener(this::onStart);
+        tp.addClockListener(this::onClock);
     }
 
     /***
@@ -39,6 +42,8 @@ public class DynamicTopology implements StartListener, ClockListener{
         this.tp = tp;
         this.links = links;
         this.innerLinks = innerLinks;
+        tp.addStartListener(this::onStart);
+        tp.addClockListener(this::onClock);
     }
 
     public void onStart(){
@@ -47,7 +52,7 @@ public class DynamicTopology implements StartListener, ClockListener{
         /*Start seulement si links contient des objets*/
         if (this.links.size() != 0) {
             /*On retire le premier lien sauvegarder dans la liste*/
-            this.tp.removeLink(this.links.get(0));
+            //this.tp.removeLink(this.links.get(0));
 
             if (this.innerLinks.size() != 0) {
                 /*Si innerLinks contient des objets, on retire le premier lien sauvegarder dans la liste*/
@@ -60,11 +65,11 @@ public class DynamicTopology implements StartListener, ClockListener{
      * Modifie le graphe dynamiquement tout les slot de temps
      * ***/
     public void onClock(){
-        this.dynamicCircularLinks(this.links, false);
+        //this.dynamicCircularLinks(this.links, false);
         if (this.innerLinks.size() != 0) {
             this.dynamicCircularLinks(this.innerLinks, true);
         }
-        this.onClockLogs();
+        //this.onClockLogs();
     }
 
     /***
@@ -74,6 +79,8 @@ public class DynamicTopology implements StartListener, ClockListener{
      * @param direction sens giratoire
      * ***/
     private void dynamicCircularLinks(List<Link> savedLinks, boolean direction) {
+        Random numberRandom = new Random();
+
         try {
             /*Pour tout les liens dans savedLinks*/
             savedLinks.forEach(linkSaved -> {
@@ -84,13 +91,18 @@ public class DynamicTopology implements StartListener, ClockListener{
                     log.debug(String.format("%s[onClock] link missing : %s", LOGGER, linkSaved));
                     log.debug(String.format("%s[onClock] link missing index : %s", LOGGER, linkSavedIndex));
                     /*En fonction de la direction on teste si cet index n'est pas le premier ou le dernier*/
-                    if (direction ? linkSavedIndex > 0 : linkSavedIndex < savedLinks.size() - 1) {
+
+                    int rand = numberRandom.nextInt(savedLinks.size() - 2) + 1;
+                    log.debug(String.format("%s[onClock] rand number : %s", LOGGER, rand));
+
+                    if (direction ? linkSavedIndex > rand : linkSavedIndex < savedLinks.size() - 1 - rand) {
                         /*On retire soit le liens précédent ou suivant cet index présent dans la liste savedLinks*/
-                        this.tp.removeLink(savedLinks.get(direction ? linkSavedIndex - 1 : linkSavedIndex + 1));
+                        this.tp.removeLink(savedLinks.get(direction ? linkSavedIndex - 1 - rand: linkSavedIndex + rand));
                     } else {
                         /*On retire soit le dernier ou le premier liens présent dans savedLinks*/
-                        this.tp.removeLink(savedLinks.get(direction ? savedLinks.size() - 1 : 0));
+                        this.tp.removeLink(savedLinks.get(direction ? savedLinks.size() - 1 - rand : rand));
                     }
+
                     /*On ajoute le lien qui ne se trouve pas dans tp.getLinks()*/
                     this.tp.addLink(linkSaved);
                     /*On sort du forEach en déclenchant un exception capter par le try catch*/

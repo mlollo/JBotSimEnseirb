@@ -1,6 +1,6 @@
 package enseirb.algo;
 
-import enseirb.deterministe.DynamicTopologyGenerator;
+import enseirb.deterministic.DynamicTopologyGenerator;
 import jbotsim.Message;
 import jbotsim.Node;
 

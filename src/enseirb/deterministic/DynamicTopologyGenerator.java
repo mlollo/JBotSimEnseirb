@@ -1,4 +1,4 @@
-package enseirb.deterministe;
+package enseirb.deterministic;
 
 import jbotsim.Link;
 import jbotsim.Node;
@@ -37,10 +37,11 @@ public class DynamicTopologyGenerator {
             /*Création du k-ieme noeuds*/
             if (k == 0) {
                 tp.addNode(x + radius * Math.cos(angle*k), y + radius * Math.sin(angle*k), leader);
+                log.debug(String.format("%s[createGraph] node leader %s", LOGGER, tp.getNodes().get(k).getID()));
             } else {
                 tp.addNode(x + radius * Math.cos(angle*k), y + radius * Math.sin(angle*k), anonymous.newInstance());
+                log.debug(String.format("%s[createGraph] node anonymous %s", LOGGER, tp.getNodes().get(k).getID()));
             }
-            log.debug(String.format("%s[createGraph] node %s", LOGGER, tp.getNodes().get(k).getID()));
 
             /*Création du k-ieme liens entre le noeuds k-1 -> k ou k -> 0*/
             if(k >= 1){

@@ -1,21 +1,17 @@
-package enseirb.deterministe;
+package enseirb.deterministic;
 
 import enseirb.algo.AnonymousNode;
 import enseirb.algo.NodeLeader;
 import jbotsim.Topology;
-import jbotsim.Link;
-import jbotsim.Node;
 import jbotsim.ui.JViewer;
 import org.apache.log4j.Logger;
-
-import java.util.List;
 
 public class DynamicMain {
     /***
      * Ajouter dans Edit configuration en haut à droite (à gauche du bouton Run) :
      * > Add a new configuration
      * > Application
-     * > DynamicMain class : enseirb.deterministe.DynamicMain
+     * > DynamicMain class : enseirb.deterministic.DynamicMain
      * > VM Options : -DrootLevel=INFO
      * > VM Options : -DrootLevel=DEBUG
      * En command line ça donne :
@@ -34,14 +30,13 @@ public class DynamicMain {
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
-        List<Link> links = DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8);
-        DynamicTopology dynamicTopology = new DynamicTopology(tp, links);
-        //DynamicTopology dynamicTopology = new DynamicTopology(tp, links, DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 5));
-        tp.addClockListener(dynamicTopology::onClock);
-        tp.addStartListener(dynamicTopology::onStart);
+        //new DynamicTopology(tp,
+                DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8);
+        //);
+        //new DynamicTopology(tp, DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8), DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 5));
 
         log.info(String.format("%s[Init JViewer]", LOGGER));
-        tp.setClockSpeed((int)0.01);
+        tp.setClockSpeed(0);
         tp.start();
         new JViewer(tp);
     }
