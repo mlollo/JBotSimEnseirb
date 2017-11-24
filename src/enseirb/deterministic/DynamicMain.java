@@ -6,6 +6,9 @@ import jbotsim.Topology;
 import jbotsim.ui.JViewer;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DynamicMain {
     /***
      * Ajouter dans Edit configuration en haut à droite (à gauche du bouton Run) :
@@ -24,20 +27,35 @@ public class DynamicMain {
 
     private static int width = 1920;   /*Resolution de la fenêtre JBotSim*/
     private static int height = 1080;  /*Resolution de la fenêtre JBotSim*/
-    private static int nbNodes = 5;   /*Nombre de noeuds*/
+    private static int nbNodes = 8;   /*Nombre de noeuds*/
+    //private static float density = 0.2;   /*Nombre de noeuds*/
     private static double round = DynamicTopologyGenerator.generateRound( 3, 1.000001, 2);
 
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
-        //new DynamicTopology(tp,
-                DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8);
-        //);
-        //new DynamicTopology(tp, DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8), DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 5));
+        new DynamicTopology(tp,
+                DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), generateAnonymousNodeList(nbNodes, round), nbNodes, width/4, height/4, height/8),
+                2
+        );
+
+        /*new DynamicRandom(tp,
+                DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), generateAnonymousNodeList(nbNodes, round), nbNodes, width/4, height/4, height/8),
+                DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 3),
+                1000
+        );*/
 
         log.info(String.format("%s[Init JViewer]", LOGGER));
         tp.setClockSpeed(0);
         tp.start();
         new JViewer(tp);
+    }
+
+    public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double round) {
+        List<AnonymousNode> anonymousNodeList = new ArrayList<>();
+        for (int i = 0; i < nbNodes; i++){
+            anonymousNodeList.add(new AnonymousNode(round));
+        }
+        return anonymousNodeList;
     }
 }

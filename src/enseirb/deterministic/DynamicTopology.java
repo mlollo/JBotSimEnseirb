@@ -18,31 +18,53 @@ public class DynamicTopology implements StartListener, ClockListener{
     private Topology tp;
     private List<Link> links = new ArrayList<>();
     private List<Link> innerLinks = new ArrayList<>();
+    private int timer;
+    private int dynamicRound;
 
     /***
-     * Initialisation de l'objet DynamicTopology
+     * Initialisation de l'objet DynamicRandom
      * @param tp nombre de noeuds
      * @param links outer links
      * ***/
-    public DynamicTopology(Topology tp, List<Link> links){
+    public DynamicTopology(Topology tp, List<Link> links, int dynamicRound){
         this.tp = tp;
         this.links = links;
         tp.addStartListener(this::onStart);
         tp.addClockListener(this::onClock);
+        this.timer = 0;
+        this.dynamicRound = dynamicRound;
     }
 
     /***
-     * Initialisation de l'objet DynamicTopology
+     * Initialisation de l'objet DynamicRandom
      * @param tp nombre de noeuds
      * @param links outer links
      * @param innerLinks inner links
      * ***/
-    public DynamicTopology(Topology tp, List<Link> links, List<Link> innerLinks){
+    public DynamicTopology(Topology tp, List<Link> links, List<Link> innerLinks, int dynamicRound){
         this.tp = tp;
         this.links = links;
         this.innerLinks = innerLinks;
         tp.addStartListener(this::onStart);
         tp.addClockListener(this::onClock);
+        this.timer = 0;
+        this.dynamicRound = dynamicRound;
+    }
+
+    /***
+     * Initialisation de l'objet DynamicRandom
+     * @param tp nombre de noeuds
+     * @param links outer links
+     * @param innerLinks inner links
+     * ***/
+    public DynamicTopology(Topology tp, List<Link> links, List<Link> innerLinks, int dynamicRound, float density){
+        this.tp = tp;
+        this.links = links;
+        this.innerLinks = innerLinks;
+        tp.addStartListener(this::onStart);
+        tp.addClockListener(this::onClock);
+        this.timer = 0;
+        this.dynamicRound = dynamicRound;
     }
 
     public void onStart(){
@@ -51,7 +73,7 @@ public class DynamicTopology implements StartListener, ClockListener{
         /*Start seulement si links contient des objets*/
         if (this.links.size() != 0) {
             /*On retire le premier lien sauvegarder dans la liste*/
-            //this.tp.removeLink(this.links.get(0));
+            this.tp.removeLink(this.links.get(0));
 
             if (this.innerLinks.size() != 0) {
                 /*Si innerLinks contient des objets, on retire le premier lien sauvegarder dans la liste*/
@@ -64,9 +86,14 @@ public class DynamicTopology implements StartListener, ClockListener{
      * Modifie le graphe dynamiquement tout les slot de temps
      * ***/
     public void onClock(){
-        //this.dynamicCircularLinks(this.links, false);
-        if (this.innerLinks.size() != 0) {
-            this.dynamicCircularLinks(this.innerLinks, true);
+        if (this.timer > this.dynamicRound) {
+            this.dynamicCircularLinks(this.links, false);
+            if (this.innerLinks.size() != 0) {
+                this.dynamicCircularLinks(this.innerLinks, true);
+            }
+            this.timer = 0;
+        } else {
+            this.timer++;
         }
         //this.onClockLogs();
     }
