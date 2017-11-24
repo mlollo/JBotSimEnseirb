@@ -9,6 +9,7 @@ import java.util.List;
 
 public class AnonymousNode extends Node{
 
+    private int counter;
     private double round;
     private double delta ;
     private double energy ;
@@ -30,18 +31,20 @@ public class AnonymousNode extends Node{
         this.k = 4;
         this.initialTime = 0;
         this.halt = false;
-        this.round = DynamicTopologyGenerator.generateRound(this.k, this.c, this.delta);
+        this.round = 2*DynamicTopologyGenerator.generateRound(this.k, this.c, this.delta);
+        this.counter = 0;
     }
 
     public AnonymousNode(double r){
         this.delta = 2;
         this.c = 1.000001;
         //this.round = (int) Math.ceil(Math.log(Math.ceil((k/2)*(3*k+7)+ Math.log(k) + (c + 1) * ((Math.pow(2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log(2*delta))- Math.pow(2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log(2*delta),2)))));
-        this.round = r;
+        this.round = 2*r;
         this.energy = 1;
         this.k = 4;
         this.initialTime = 0;
         this.halt = false;
+        this.counter = 0;
     }
 
     public AnonymousNode(double round, double delta){
@@ -114,9 +117,13 @@ public class AnonymousNode extends Node{
 
                 int tmp = Double.compare(energy,0);
                 if (tmp >= 0) {
-                    sendAll(new Message(this.energy / (2 * (double) this.delta), "ENERGY"));
-                    this.energy = this.energy - this .energy * s / (2 * (double) this.delta);
-
+                    if (counter == 0) {
+                        sendAll(new Message(this.energy / (2 * (double) this.delta), "ENERGY"));
+                        this.energy = this.energy - this.energy * s / (2 * (double) this.delta);
+                        counter++;
+                    } else {
+                        counter = 0;
+                    }
                 }
 
 

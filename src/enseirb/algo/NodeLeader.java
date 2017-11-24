@@ -26,7 +26,7 @@ public class NodeLeader extends Node {
 
     public NodeLeader(double r){
         //this.round = (int) Math.ceil(Math.log(Math.ceil((k/2)*(3*k+7)+ Math.log(k) + (c + 1) * ((Math.pow(2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log(2*delta))- Math.pow(2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log(2*delta),2)))));
-        this.round = r;
+        this.round = 2*r;
         System.out.println("ROUND " + round);
 
         this.initialTime = 0;
