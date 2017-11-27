@@ -5,15 +5,16 @@ import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsim.event.ClockListener;
 import jbotsim.event.StartListener;
+import jbotsimx.Connectivity;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DynamicDeterministic implements StartListener, ClockListener{
+public class DynamicNet implements StartListener, ClockListener{
 
-    private static final Logger log = Logger.getLogger(DynamicDeterministic.class);
-    private static final String LOGGER = "[Dynamic][Topology]";
+    private static final Logger log = Logger.getLogger(DynamicNet.class);
+    private static final String LOGGER = "[Dynamic][Network]";
 
     private Topology tp;
     private List<Link> links = new ArrayList<>();
@@ -22,49 +23,18 @@ public class DynamicDeterministic implements StartListener, ClockListener{
     private int dynamicRound;
 
     /***
-     * Initialisation de l'objet DynamicRandom
+     * Initialisation de l'objet DynamicNet
      * @param tp nombre de noeuds
      * @param links outer links
      * ***/
-    public DynamicDeterministic(Topology tp, List<Link> links, int dynamicRound){
+    public DynamicNet(Topology tp, List<Link> links, int dynamicRound){
         this.tp = tp;
         this.links = links;
-        tp.addStartListener(this::onStart);
-        tp.addClockListener(this::onClock);
+        tp.addStartListener(this);
+        tp.addClockListener(this);
         this.timer = 0;
         this.dynamicRound = dynamicRound;
-    }
-
-    /***
-     * Initialisation de l'objet DynamicRandom
-     * @param tp nombre de noeuds
-     * @param links outer links
-     * @param innerLinks inner links
-     * ***/
-    public DynamicDeterministic(Topology tp, List<Link> links, List<Link> innerLinks, int dynamicRound){
-        this.tp = tp;
-        this.links = links;
-        this.innerLinks = innerLinks;
-        tp.addStartListener(this::onStart);
-        tp.addClockListener(this::onClock);
-        this.timer = 0;
-        this.dynamicRound = dynamicRound;
-    }
-
-    /***
-     * Initialisation de l'objet DynamicRandom
-     * @param tp nombre de noeuds
-     * @param links outer links
-     * @param innerLinks inner links
-     * ***/
-    public DynamicDeterministic(Topology tp, List<Link> links, List<Link> innerLinks, int dynamicRound, float density){
-        this.tp = tp;
-        this.links = links;
-        this.innerLinks = innerLinks;
-        tp.addStartListener(this::onStart);
-        tp.addClockListener(this::onClock);
-        this.timer = 0;
-        this.dynamicRound = dynamicRound;
+        log.info(String.format("%s[DynamicNet] links list : %s", LOGGER, links));
     }
 
     public void onStart(){
@@ -74,11 +44,6 @@ public class DynamicDeterministic implements StartListener, ClockListener{
         if (this.links.size() != 0) {
             /*On retire le premier lien sauvegarder dans la liste*/
             this.tp.removeLink(this.links.get(0));
-
-            if (this.innerLinks.size() != 0) {
-                /*Si innerLinks contient des objets, on retire le premier lien sauvegarder dans la liste*/
-                this.tp.removeLink(this.innerLinks.get(0));
-            }
         }
     }
 
@@ -87,10 +52,7 @@ public class DynamicDeterministic implements StartListener, ClockListener{
      * ***/
     public void onClock(){
         if (this.timer > this.dynamicRound) {
-            this.dynamicCircularLinks(this.links, false);
-            if (this.innerLinks.size() != 0) {
-                this.dynamicCircularLinks(this.innerLinks, true);
-            }
+            this.dynamicCircularLinks(this.links);
             this.timer = 0;
         } else {
             this.timer++;
@@ -102,30 +64,51 @@ public class DynamicDeterministic implements StartListener, ClockListener{
      * Retire un connecteur et en ajoute un de façon à ce que le graphe reste connexe
      *
      * @param savedLinks liste des liens à rendre dynamique
-     * @param direction sens giratoire
      * ***/
-    private void dynamicCircularLinks(List<Link> savedLinks, boolean direction) {
+    private void dynamicCircularLinks(List<Link> savedLinks) {
         try {
             /*Pour tout les liens dans savedLinks*/
-            savedLinks.forEach(linkSaved -> {
+            savedLinks.forEach((Link linkSaved) -> {
                 /*Si aucun liens de tp.getLinks() match avec linkSaved alors :*/
                 if (this.tp.getLinks().stream().noneMatch(link -> link.equals(linkSaved))) {
                     /*On sauvegarde l'index de linkSaved dans la liste savedLinks*/
-                    int linkSavedIndex = savedLinks.indexOf(linkSaved);
-                    log.debug(String.format("%s[onClock] link missing : %s", LOGGER, linkSaved));
-                    log.debug(String.format("%s[onClock] link missing index : %s", LOGGER, linkSavedIndex));
+                    int index = savedLinks.indexOf(linkSaved);
+                    log.debug(String.format("%s[onClock] links saved : %s", LOGGER, linkSaved));
+                    log.debug(String.format("%s[onClock] link none match index : %s", LOGGER, index));
                     /*En fonction de la direction on teste si cet index n'est pas le premier ou le dernier*/
-                    if (direction ? linkSavedIndex > 0 : linkSavedIndex < savedLinks.size() - 1) {
+                    int k = 1;
+                    this.tp.addLink(linkSaved);
+                    while(k <= savedLinks.size()) {
+                        if ( index + k - 1 == savedLinks.size() - 1) {
+                            /*On retire soit le liens précédent ou suivant cet index présent dans la liste savedLinks*/
+                            this.tp.removeLink(savedLinks.get(0));
+                        } else {
+                            /*On retire soit le dernier ou le premier liens présent dans savedLinks*/
+                            this.tp.removeLink(savedLinks.get(index + k));
+                        }
+                        if (Connectivity.isConnected(tp)) {
+                            throw new BreakException();
+                        } else {
+                            if ( index + k - 1 == savedLinks.size() - 1) {
+                                /*On retire soit le liens précédent ou suivant cet index présent dans la liste savedLinks*/
+                                this.tp.addLink(savedLinks.get(0));
+                            } else {
+                                /*On retire soit le dernier ou le premier liens présent dans savedLinks*/
+                                this.tp.addLink(savedLinks.get(index + k));
+                            }
+                            k++;
+                        }
+                    }
+
+
+                    //if (direction ? index > 0 : index < savedLinks.size() - 1) {
                         /*On retire soit le liens précédent ou suivant cet index présent dans la liste savedLinks*/
-                        this.tp.removeLink(savedLinks.get(direction ? linkSavedIndex - 1 : linkSavedIndex + 1));
+                      /*  this.tp.removeLink(savedLinks.get(direction ? index - 1 : index + 1));
                     } else {
                         /*On retire soit le dernier ou le premier liens présent dans savedLinks*/
-                        this.tp.removeLink(savedLinks.get(direction ? savedLinks.size() - 1 : 0));
+                    /*    this.tp.removeLink(savedLinks.get(direction ? savedLinks.size() - 1 : 0));
                     }
                     /*On ajoute le lien qui ne se trouve pas dans tp.getLinks()*/
-                    this.tp.addLink(linkSaved);
-                    /*On sort du forEach en déclenchant un exception capter par le try catch*/
-                    throw new BreakException();
                 }
             });
         } catch (BreakException ignored) { }

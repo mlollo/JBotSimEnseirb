@@ -1,7 +1,6 @@
 package enseirb.random;
 
 import jbotsim.Link;
-import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsim.event.ClockListener;
 import jbotsim.event.StartListener;
@@ -11,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class DynamicRandom implements StartListener, ClockListener{
+public class DynamicNet implements StartListener, ClockListener{
 
-    private static final Logger log = Logger.getLogger(DynamicRandom.class);
+    private static final Logger log = Logger.getLogger(DynamicNet.class);
     private static final String LOGGER = "[Dynamic][Topology]";
 
     private Topology tp;
@@ -21,11 +20,11 @@ public class DynamicRandom implements StartListener, ClockListener{
     private List<Link> innerLinks = new ArrayList<>();
 
     /***
-     * Initialisation de l'objet DynamicRandom
+     * Initialisation de l'objet DynamicNet
      * @param tp nombre de noeuds
      * @param links outer links
      * ***/
-    public DynamicRandom(Topology tp, List<Link> links){
+    public DynamicNet(Topology tp, List<Link> links){
         this.tp = tp;
         this.links = links;
         tp.addStartListener(this::onStart);
@@ -33,12 +32,12 @@ public class DynamicRandom implements StartListener, ClockListener{
     }
 
     /***
-     * Initialisation de l'objet DynamicRandom
+     * Initialisation de l'objet DynamicNet
      * @param tp nombre de noeuds
      * @param links outer links
      * @param innerLinks inner links
      * ***/
-    public DynamicRandom(Topology tp, List<Link> links, List<Link> innerLinks){
+    public DynamicNet(Topology tp, List<Link> links, List<Link> innerLinks){
         this.tp = tp;
         this.links = links;
         this.innerLinks = innerLinks;

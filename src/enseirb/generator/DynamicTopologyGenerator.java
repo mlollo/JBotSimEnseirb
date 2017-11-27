@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
 
 public class DynamicTopologyGenerator {
 
@@ -24,7 +25,7 @@ public class DynamicTopologyGenerator {
     /***
      * Créer une constellation de noeuds circulaire
      * Créer un graphe en sauvegardant les connecteurs Link dans la liste links
-     * Modifie l'objet Topology tp qui appartient à l'objet DynamicRandom
+     * Modifie l'objet Topology tp qui appartient à l'objet DynamicNet
      *
      * @param tp aTopology
      * @param leader Noeud leader de l'algorithme
@@ -34,13 +35,13 @@ public class DynamicTopologyGenerator {
      * @param y ordonnées du centre du cercle
      * @param radius rayon du cercle
      * ***/
-    public static List<Link> generateCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) throws InstantiationException, IllegalAccessException {
+    public static List<Link> generateCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         generateLinksCircle(tp, nbNodes);
         return tp.getLinks();
     }
 
-    public static List<Link> generateDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int x, int y, int radius) throws InstantiationException, IllegalAccessException {
+    public static List<Link> generateDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         Random numberRandom = new Random();
         boolean isconnect = false;
@@ -52,20 +53,22 @@ public class DynamicTopologyGenerator {
         return tp.getLinks();
     }
 
-    public static List<Link> generateFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, double errDensity, int delta,int x, int y, int radius) throws InstantiationException, IllegalAccessException {
+    public static List<Link> generateFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, double errDensity, int delta,int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         Random numberRandom = new Random();
         boolean isconnect = false;
+        long timer = System.currentTimeMillis() + 1500;
         long nbLinks = Math.round(density * nbNodes * (nbNodes - 1) / 2);
 
         isconnect = generateLinksFairCircle(tp, nbNodes, nbLinks, delta, numberRandom, isconnect);
-        System.out.println(density - getDensity(tp, nbNodes));
-        System.out.println(errDensity);
         while(!isconnect || Math.abs(density - getDensity(tp, nbNodes)) > errDensity) {
+            if (timer - System.currentTimeMillis() <= 0 ) {
+                log.info(String.format("%s timeout", LOGGER));
+                numberRandom = new Random();
+                timer = System.currentTimeMillis() + 1500;
+            }
             isconnect = generateLinksFairCircle(tp, nbNodes, nbLinks, delta, numberRandom, isconnect);
         }
-        System.out.println(density - getDensity(tp, nbNodes));
-        System.out.println(errDensity);
         return tp.getLinks();
     }
 
@@ -88,8 +91,8 @@ public class DynamicTopologyGenerator {
         for (int link = 0 ; link < nbLinks ; link++) {
             int random1 = numberRandom.nextInt(nbNodes);
             int random2 = numberRandom.nextInt(nbNodes);
-            log.debug(String.format("%s rand1 %s", LOGGER,random1));
-            log.debug(String.format("%s rand2 %s", LOGGER, random2));
+            //log.debug(String.format("%s rand1 %s", LOGGER,random1));
+            //log.debug(String.format("%s rand2 %s", LOGGER, random2));
             //System.out.println(getDensity(tp, nbNodes));
 
             if (random1 != random2 && tp.getNodes().get(random1).getNeighbors().size() < delta && tp.getNodes().get(random2).getNeighbors().size() < delta) {
