@@ -10,9 +10,9 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DynamicTopology implements StartListener, ClockListener{
+public class DynamicDeterministic implements StartListener, ClockListener{
 
-    private static final Logger log = Logger.getLogger(DynamicTopology.class);
+    private static final Logger log = Logger.getLogger(DynamicDeterministic.class);
     private static final String LOGGER = "[Dynamic][Topology]";
 
     private Topology tp;
@@ -26,7 +26,7 @@ public class DynamicTopology implements StartListener, ClockListener{
      * @param tp nombre de noeuds
      * @param links outer links
      * ***/
-    public DynamicTopology(Topology tp, List<Link> links, int dynamicRound){
+    public DynamicDeterministic(Topology tp, List<Link> links, int dynamicRound){
         this.tp = tp;
         this.links = links;
         tp.addStartListener(this::onStart);
@@ -41,7 +41,7 @@ public class DynamicTopology implements StartListener, ClockListener{
      * @param links outer links
      * @param innerLinks inner links
      * ***/
-    public DynamicTopology(Topology tp, List<Link> links, List<Link> innerLinks, int dynamicRound){
+    public DynamicDeterministic(Topology tp, List<Link> links, List<Link> innerLinks, int dynamicRound){
         this.tp = tp;
         this.links = links;
         this.innerLinks = innerLinks;
@@ -57,7 +57,7 @@ public class DynamicTopology implements StartListener, ClockListener{
      * @param links outer links
      * @param innerLinks inner links
      * ***/
-    public DynamicTopology(Topology tp, List<Link> links, List<Link> innerLinks, int dynamicRound, float density){
+    public DynamicDeterministic(Topology tp, List<Link> links, List<Link> innerLinks, int dynamicRound, float density){
         this.tp = tp;
         this.links = links;
         this.innerLinks = innerLinks;
