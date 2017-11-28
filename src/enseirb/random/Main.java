@@ -3,6 +3,8 @@ package enseirb.random;
 import enseirb.algo.AnonymousNode;
 import enseirb.algo.NodeLeader;
 import enseirb.generator.DynamicTopologyGenerator;
+import jbotsim.Link;
+import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsim.ui.JViewer;
 import org.apache.log4j.Logger;
@@ -34,22 +36,36 @@ public class Main {
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
-        //new DynamicNet(tp,
-        //DynamicTopologyGenerator.generateDenseCircle(tp, new NodeLeader(round), generateAnonymousNodeList(nbNodes, round), nbNodes, 0.5, width/4, height/4, height/8);
-        //);
-        //new DynamicNet(tp, DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8), DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 5));
+        List<Link> list = DynamicTopologyGenerator.generateDenseCircle(
+                tp,
+                new NodeLeader(round),
+                generateAnonymousNodeList(nbNodes, round, 4), nbNodes,
+                0.5, width/4, height/4, height/8
+        );
+
+        new DynamicNetwork(tp, list);
+        //new DynamicNetwork(tp, DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8), DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 5));
 
         log.info(String.format("%s[Init JViewer]", LOGGER));
-        tp.setClockSpeed(0);
+        tp.setClockSpeed(1);
         tp.start();
         new JViewer(tp);
     }
 
-    public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double round) {
+    public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double round, double delta) {
         List<AnonymousNode> anonymousNodeList = new ArrayList<>();
-        for (int i = 0; i < nbNodes; i++){
-            anonymousNodeList.add(new AnonymousNode(round, 4));
+        for (int i = 0; i < nbNodes; i++) {
+            anonymousNodeList.add(new AnonymousNode(round, delta));
         }
         return anonymousNodeList;
     }
+
+    public static List<Node> generateNodeList(int nbNodes) {
+        List<Node> nodeList = new ArrayList<>();
+        for (int i = 0; i < nbNodes; i++){
+            nodeList.add(new Node());
+        }
+        return nodeList;
+    }
+
 }

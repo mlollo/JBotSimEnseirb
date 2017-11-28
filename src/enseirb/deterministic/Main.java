@@ -34,28 +34,28 @@ public class Main {
     //private static double round = DynamicTopologyGenerator.generateRound( 3, 1.000001, 2);
 
     public static void main(String[] args) {
-        Topology tp = new Topology(width*2, height*2, false);
+        Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
         List<Link> list = DynamicTopologyGenerator.generateFairCircle(
                 tp,
-                //new NodeLeader(round, 4  ),
-                //generateAnonymousNodeList(nbNodes, round),
+                //new NodeLeader(round, 4),
+                //generateAnonymousNodeList(nbNodes, round, 4),
                 new Node(),
                 generateNodeList(nbNodes),
-                nbNodes, 0.6, 0.1,4,width, height, height/2
+                nbNodes, 0.6, 0.1,4,width/4, height/4, height/8
         );
-        new DynamicNet(tp, list, 2);
+        new DynamicNetwork(tp, list, 2);
 
         log.info(String.format("%s[Init JViewer]", LOGGER));
-        tp.setClockSpeed(1000);
+        tp.setClockSpeed(500);
         tp.start();
         new JViewer(tp);
     }
 
-    public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double round) {
+    public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double round, double delta) {
         List<AnonymousNode> anonymousNodeList = new ArrayList<>();
         for (int i = 0; i < nbNodes; i++){
-            anonymousNodeList.add(new AnonymousNode(round, 4));
+            anonymousNodeList.add(new AnonymousNode(round, delta));
         }
         return anonymousNodeList;
     }

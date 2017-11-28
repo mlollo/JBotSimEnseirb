@@ -5,15 +5,14 @@ import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsim.event.ClockListener;
 import jbotsim.event.StartListener;
-import jbotsimx.Connectivity;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DynamicNet implements StartListener, ClockListener{
+public class DynamicNetwork implements StartListener, ClockListener{
 
-    private static final Logger log = Logger.getLogger(DynamicNet.class);
+    private static final Logger log = Logger.getLogger(DynamicNetwork.class);
     private static final String LOGGER = "[Dynamic][Network]";
 
     private Topology tp;
@@ -23,18 +22,18 @@ public class DynamicNet implements StartListener, ClockListener{
     private int dynamicRound;
 
     /***
-     * Initialisation de l'objet DynamicNet
+     * Initialisation de l'objet DynamicNetwork
      * @param tp nombre de noeuds
      * @param links outer links
      * ***/
-    public DynamicNet(Topology tp, List<Link> links, int dynamicRound){
+    public DynamicNetwork(Topology tp, List<Link> links, int dynamicRound){
         this.tp = tp;
         this.links = links;
         tp.addStartListener(this);
         tp.addClockListener(this);
         this.timer = 0;
         this.dynamicRound = dynamicRound;
-        log.info(String.format("%s[DynamicNet] links list : %s", LOGGER, links));
+        log.info(String.format("%s[DynamicNetwork] links list : %s", LOGGER, links));
     }
 
     public void onStart(){
@@ -78,25 +77,21 @@ public class DynamicNet implements StartListener, ClockListener{
                     /*En fonction de la direction on teste si cet index n'est pas le premier ou le dernier*/
                     int k = 1;
                     this.tp.addLink(linkSaved);
-                    while(k <= savedLinks.size()) {
-                        if ( index + k - 1 == savedLinks.size() - 1) {
+                    while(true) {
+                        if (this.tp.getLinks().get(0).endpoint(0).getNeighbors().size() > 1 && this.tp.getLinks().get(0).endpoint(1).getNeighbors().size() > 1 && index + k == savedLinks.size()) {
                             /*On retire soit le liens précédent ou suivant cet index présent dans la liste savedLinks*/
                             this.tp.removeLink(savedLinks.get(0));
-                        } else {
+                            throw new BreakException();
+                        } else if (this.tp.getLinks().get(index + k).endpoint(0).getNeighbors().size() > 1 && this.tp.getLinks().get(index + k).endpoint(1).getNeighbors().size() > 1){
                             /*On retire soit le dernier ou le premier liens présent dans savedLinks*/
                             this.tp.removeLink(savedLinks.get(index + k));
-                        }
-                        if (Connectivity.isConnected(tp)) {
                             throw new BreakException();
                         } else {
-                            if ( index + k - 1 == savedLinks.size() - 1) {
-                                /*On retire soit le liens précédent ou suivant cet index présent dans la liste savedLinks*/
-                                this.tp.addLink(savedLinks.get(0));
+                            if (k <= savedLinks.size()) {
+                                k++;
                             } else {
-                                /*On retire soit le dernier ou le premier liens présent dans savedLinks*/
-                                this.tp.addLink(savedLinks.get(index + k));
+                                k=1;
                             }
-                            k++;
                         }
                     }
 

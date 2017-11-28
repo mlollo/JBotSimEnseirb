@@ -25,7 +25,7 @@ public class DynamicTopologyGenerator {
     /***
      * Créer une constellation de noeuds circulaire
      * Créer un graphe en sauvegardant les connecteurs Link dans la liste links
-     * Modifie l'objet Topology tp qui appartient à l'objet DynamicNet
+     * Modifie l'objet Topology tp qui appartient à l'objet DynamicNetwork
      *
      * @param tp aTopology
      * @param leader Noeud leader de l'algorithme
@@ -64,8 +64,8 @@ public class DynamicTopologyGenerator {
         while(!isconnect || Math.abs(density - getDensity(tp, nbNodes)) > errDensity) {
             if (timer - System.currentTimeMillis() <= 0 ) {
                 log.info(String.format("%s timeout", LOGGER));
+                timer = System.currentTimeMillis() + 1500 + numberRandom.nextInt();
                 numberRandom = new Random();
-                timer = System.currentTimeMillis() + 1500;
             }
             isconnect = generateLinksFairCircle(tp, nbNodes, nbLinks, delta, numberRandom, isconnect);
         }
@@ -181,5 +181,61 @@ public class DynamicTopologyGenerator {
         }
         //*Return des liens intèrieurs*//*
         return innerLinks;
+    }
+
+    public static void generateTopo(Topology tp, int[] x, int[] y, int[][] link) {
+        if (x.length != y.length) {
+            System.out.println("[Dynamic][Topology][Generator] generateTopo : x and y should have the same length");
+        }
+        List<Node> nodes = new ArrayList<>();
+        for(int i = 0; i < x.length; i++){
+            nodes.add(new Node());
+        }
+        nodes.forEach(node -> {
+            tp.addNode(x[nodes.indexOf(node)], y[nodes.indexOf(node)], node);
+        });
+        for (int i = 0; i < link.length; i++) {
+            tp.addLink(new Link(nodes.get(link[i][0]), nodes.get(link[i][1])));
+        }
+    }
+
+    public static void generateTopo0(Topology tp) {
+        int[] x = {100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+        int[] y = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500};
+        int[][] link = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}, {6, 7}, {7, 8}, {8, 9}};
+        generateTopo(tp, x, y, link);
+    }
+
+    public static void generateTopo1(Topology tp) {
+        int[] x = {100, 100, 100, 100, 150, 150, 150, 50, 50, 50};
+        int[] y = {250, 200, 150, 100, 100, 150, 200, 200, 150, 100};
+        int[][] link = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {2, 5}, {1, 6}, {1, 7}, {2, 8}, {3, 9}};
+        generateTopo(tp, x, y, link);
+    }
+    public static void generateTopo2(Topology tp) {
+        int[] x = {100, 50, 50, 50, 50, 100, 150, 150, 150, 150, 100};
+        int[] y = {125, 200, 150, 100, 50, 50, 50, 100, 150, 200, 200};
+        int[][] link = {{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}};
+        generateTopo(tp, x, y, link);
+    }
+    public static void generateTopo3(Topology tp) {
+        int[] x = {100, 100, 100, 100, 50, 50, 100, 150, 150, 150};
+        int[] y = {250, 200, 150, 100, 100, 50, 50, 50, 100, 150};
+        int[][] link = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {3, 5}, {3, 6}, {3, 7}, {3, 8}, {3, 9}};
+        generateTopo(tp, x, y, link);
+    }
+    public static void generateTopo4(Topology tp) {
+        int[] x = {150, 200, 200, 200, 250, 100, 125, 100, 50, 100};
+        int[] y = {50, 100, 150, 200, 200, 100, 150, 150, 200, 200};
+        int[][] link = {{0, 1}, {1, 2}, {2, 3}, {2, 4}, {0, 5}, {5, 6}, {5, 7}, {7, 8}, {7, 9}};
+        generateTopo(tp, x, y, link);
+
+    }
+    public static void generateTopo5(Topology tp) {
+        int[] x = {250, 200, 200, 200, 150, 100, 125, 100, 50, 100};
+        int[] y = {200, 100, 150, 200, 50, 100, 150, 150, 200, 200};
+        int[][] link = {{4, 1}, {1, 2}, {2, 3}, {0, 2}, {4, 5}, {5, 6}, {5, 7}, {7, 8}, {7, 9}};
+        generateTopo(tp, x, y, link);
+
     }
 }
