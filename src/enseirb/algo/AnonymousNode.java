@@ -9,7 +9,6 @@ import java.util.List;
 
 public class AnonymousNode extends Node{
 
-    private int counter;
     private double round;
     private double delta ;
     private double energy ;
@@ -22,42 +21,23 @@ public class AnonymousNode extends Node{
     private double c ;
     private double energyMax;
     private double nodeNumber;
-    private int initialTime =0 ;
+    private int counter = 0;
+    private int initialTime = 0;
+    private boolean once = true;
+    private double realRound = 0;
 
-    public AnonymousNode(){
-        this.delta = 2;
-        this.c = 1.000001;
-        this.energy = 1;
-        this.k = 4;
-        this.initialTime = 0;
-        this.halt = false;
-        this.round = 2*DynamicTopologyGenerator.generateRound(this.k, this.c, this.delta);
-        this.counter = 0;
-    }
-
-    public AnonymousNode(double r){
-        this.delta = 2;
-        this.c = 1.000001;
-        //this.round = (int) Math.ceil(Math.log(Math.ceil((k/2)*(3*k+7)+ Math.log(k) + (c + 1) * ((Math.pow(2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log(2*delta))- Math.pow(2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log(2*delta),2)))));
-        this.round = 2*r;
-        this.energy = 1;
-        this.k = 4;
-        this.initialTime = 0;
-        this.halt = false;
-        this.counter = 0;
-    }
-
-    public AnonymousNode(double round, double delta){
-        this.round = 2*(int) Math.ceil((k/2)*(3*k+7)+ Math.log(k) + (c + 1) * ((Math.pow(2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log(2*delta))- Math.pow(2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log(2*delta),2)));
+    public AnonymousNode(double delta, double c){
         this.delta = delta;
         this.energy = 1;
-        this.c = 1.000001;
+        this.c = c;
         this.k = 4;
+        this.round = getRound(this.k, this.c, this.delta);
         this.initialTime = 0;
         this.halt = false;
-        this.counter = 0;
 
     }
+
+    public static double getRound(double k, double c, double delta) { return 2*k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)); }
 
     @Override
     public void onMessage (Message message){
@@ -99,11 +79,11 @@ public class AnonymousNode extends Node{
             // Notification phase
 
 
-            if ((this.getTime() - (int)this.notificationNumber) < (int)this.k) {
-                if (message.getFlag().equals("HALT")) {
-                    halt = true;
-                }
+            //if ((this.getTime() - (int)this.notificationNumber) < (int)this.k) {
+            if (message.getFlag().equals("HALT")) {
+                halt = true;
             }
+            //}
 
 
         }
@@ -127,6 +107,7 @@ public class AnonymousNode extends Node{
                         this.energy = this.energy - this.energy * s / (2 * (double) this.delta);
                         counter++;
                     } else {
+                        this.realRound++;
                         counter = 0;
                     }
                 }
@@ -166,18 +147,23 @@ public class AnonymousNode extends Node{
                         }
 
                     } else {
-                        this.k += 1;
-                        System.out.println(" ANONYMOUS CHANGEMENT de k " + this.k);
-                        this.initialTime = this.getTime();
-                        energyArray = new ArrayList<>();
-                        this.energy = 1;
-                        //System.out.println(" ROUND KKKKKKKKKKK " + round);
-                        //System.out.println(" INITIAL KKKKKKKKKKKKK " + initialTime);
-                        this.round = (int) k * Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k));
-                        //System.out.println(" k anonymous " + k);
-                        //System.out.println(" delta anonymous " + round);
-                        //System.out.println(" ROUND " + round);
-                        System.out.println(" ROUND " + round);
+                        if (counter == 1) {
+                            this.k += 1;
+                            System.out.println(" ANONYMOUS "+getID()+" CHANGEMENT de k=" + this.k);
+                            this.initialTime = this.getTime();
+                            energyArray = new ArrayList<>();
+                            this.energy = 1;
+                            //System.out.println(" ROUND KKKKKKKKKKK " + round);
+                            //System.out.println(" INITIAL KKKKKKKKKKKKK " + initialTime);
+                            this.round = getRound(k,delta,c);
+                            //System.out.println(" k anonymous " + k);
+                            //System.out.println(" delta anonymous " + round);
+                            //System.out.println(" ROUND " + round);
+                            //System.out.println(" ROUND " + round);
+                            counter = 0;
+                        } else {
+                            counter = 1;
+                        }
                     }
                 }
 
@@ -187,7 +173,11 @@ public class AnonymousNode extends Node{
 
         } else {
             nodeNumber = this.k;
-            System.out.println(" anonymous node number " + nodeNumber);
+            if (once) {
+                sendAll(new Message("halt", "HALT"));
+                System.out.println(" anonymous " +getID()+ " node number " + nodeNumber +" final round number "+realRound);
+                once = false;
+            }
         }
 
         //System.out.println(" TEMPS " + this.getTime());

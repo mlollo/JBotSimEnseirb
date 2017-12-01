@@ -11,9 +11,9 @@ import java.util.List;
 public class NodeLeader extends Node {
 
     private double round;
-    private double delta = 2;
+    private double delta;
     private double energy = 0;
-    private double c = 1.000001;
+    private double c;
     private double k = 4;
     private double nodeNumber;
     private boolean halt;
@@ -23,29 +23,21 @@ public class NodeLeader extends Node {
     private boolean isCorrect = true;
     List<Double> energyArray = new ArrayList();
     private int initialTime;
+    private  int counter = 0;
     private boolean once = true;
+    private double realRound = 0;
 
-    public NodeLeader(double r){
-        //this.round = (int) Math.ceil(Math.log(Math.ceil((k/2)*(3*k+7)+ Math.log(k) + (c + 1) * ((Math.pow(2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log(2*delta))- Math.pow(2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log(2*delta),2)))));
-        this.round = 2*r;
-        System.out.println("ROUND " + round);
-
-        this.initialTime = 0;
-        this.halt = false;
-    }
-
-    public NodeLeader(double r, int delta){
-        //this.round = (int) Math.ceil(Math.log(Math.ceil((k/2)*(3*k+7)+ Math.log(k) + (c + 1) * ((Math.pow(2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log(2*delta))- Math.pow(2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log(2*delta),2)))));
-        this.round = 2*r;
-        System.out.println("ROUND " + round);
+    public NodeLeader(double delta, double c){
         this.delta = delta;
+        this.c = c;
+        this.round = getRound(this.k, this.c, this.delta);
+        System.out.println("ROUND " + round);
+
         this.initialTime = 0;
         this.halt = false;
     }
 
-
-
-
+    public static double getRound(double k, double c, double delta) { return k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)) ; }
 
     @Override
     public void onMessage (Message message){
@@ -115,9 +107,16 @@ public class NodeLeader extends Node {
     @Override
     public void onClock (){
 
-
         //
         if(!halt) {
+            if ((this.getTime() - this.initialTime) < (int) this.round) {
+                if (counter == 0) {
+                    counter++;
+                } else {
+                    this.realRound++;
+                    counter = 0;
+                }
+            }
 
             if ((this.getTime() - this.initialTime) == (int)round) {
                 this.tempTime = this.getTime();
@@ -147,23 +146,28 @@ public class NodeLeader extends Node {
                             halt = true;
                         }
                     }else {
-                        k += 1;
-                        System.out.println(" LEADER CHANGEMENT de k " + k);
-                        //round = this.getTime() +round;
-                        this.initialTime = this.getTime();
-                        energyArray = new ArrayList<>();
-                        this.energy = 0;
-                        this.isCorrect = true;
-                        this.round = (int) k * Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k));
-                        System.out.println(" OUUUUUUUUUUUUUUUI ");
-                        System.out.println(" ROUND " + round);
+                        if (counter == 1) {
+                            k += 1;
+                            System.out.println(" LEADER "+getID()+" CHANGEMENT de k=" + k);
+                            //round = this.getTime() +round;
+                            this.initialTime = this.getTime();
+                            energyArray = new ArrayList<>();
+                            this.energy = 0;
+                            this.isCorrect = true;
+                            this.round = getRound(k,delta,c);
+                            System.out.println(" ROUND TH " + round + " REAL ROUND "+realRound);
+                            counter = 0;
+                        } else {
+                            counter = 1;
+                        }
                     }
                 }
             }
         }else{
             nodeNumber = this.k;
             if (once) {
-                System.out.println(" leader node number " +nodeNumber);
+                //sendAll(new Message("halt", "HALT"));
+                System.out.println(" leader "+getID()+" node number " +nodeNumber+ " final th round number "+ round + " final real round number " + realRound);
                 once = false;
             }
         }

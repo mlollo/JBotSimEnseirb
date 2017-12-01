@@ -41,12 +41,12 @@ public class TopoTest{
         //this.round = Math.ceil(Math.log((k/2)*(3*k+7)+ Math.log((k) + (c + 1) * ((Math.pow((double)2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log((double)2*delta))- Math.pow((double)2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log((double)2*delta),(double)2)))));
         this.round = k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k));
         this.tp10 = new Topology(1920,1080,false);
-        this.n0 = new NodeLeader(round);
-        this.n1 = new AnonymousNode(round);
-        this.n2 = new AnonymousNode(round);
-        this.n3 = new AnonymousNode(round);
-        this.n4 = new AnonymousNode(round);
-        this.n5 = new AnonymousNode(round);
+        this.n0 = new NodeLeader(3, 3);
+        this.n1 = new AnonymousNode(3, 3);
+        this.n2 = new AnonymousNode(3, 3);
+        this.n3 = new AnonymousNode(3, 3);
+        this.n4 = new AnonymousNode(3, 3);
+        this.n5 = new AnonymousNode(3, 3);
 
         /*this.n6 = new AnonymousNode(round);
         this.n7 = new AnonymousNode(round);
