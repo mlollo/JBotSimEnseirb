@@ -1,0 +1,15 @@
+
+k =4.0 nombre de round = 31
+k =5.0 nombre de round = 52
+k =6.0 nombre de round = 238
+
+
+
+
+
+k =6.0 nombre de round = 337
+k =5.0 nombre de round = 73
+k =4.0 nombre de round = 40
+
+
+

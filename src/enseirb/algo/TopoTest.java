@@ -31,9 +31,9 @@ public class TopoTest{
     private Link l8;
 
     private double round;
-    private double k = 3;
+    private double k = 4;
     //private double c = 1.1 * Math.log(5)/Math.log(2);
-    private double c = 1.000001;
+    private double c = 3;
     private double delta = 2;
 
 
@@ -41,12 +41,18 @@ public class TopoTest{
         //this.round = Math.ceil(Math.log((k/2)*(3*k+7)+ Math.log((k) + (c + 1) * ((Math.pow((double)2*delta,k+1) * (k + 1) * Math.log(k+1)/Math.log((double)2*delta))- Math.pow((double)2*delta,k+1)*Math.log(k+1)/Math.pow(Math.log((double)2*delta),(double)2)))));
         this.round = k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k));
         this.tp10 = new Topology(1920,1080,false);
-        this.n0 = new NodeLeader(3, 3);
+        /*this.n0 = new NodeLeader(3, 3);
         this.n1 = new AnonymousNode(3, 3);
         this.n2 = new AnonymousNode(3, 3);
         this.n3 = new AnonymousNode(3, 3);
         this.n4 = new AnonymousNode(3, 3);
-        this.n5 = new AnonymousNode(3, 3);
+        this.n5 = new AnonymousNode(3, 3);*/
+        this.n0 = new TauNodeLeader(k,c);
+        this.n1 = new TauAnonymousNode(k,c);
+        this.n2 = new TauAnonymousNode(k,c);
+        this.n3 = new TauAnonymousNode(k,c);
+        this.n4 = new TauAnonymousNode(k,c);
+        this.n5 = new TauAnonymousNode(k,c);
 
         /*this.n6 = new AnonymousNode(round);
         this.n7 = new AnonymousNode(round);

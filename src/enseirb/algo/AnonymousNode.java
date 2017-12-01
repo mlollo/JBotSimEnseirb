@@ -1,6 +1,5 @@
 package enseirb.algo;
 
-import enseirb.generator.DynamicTopologyGenerator;
 import jbotsim.Message;
 import jbotsim.Node;
 
@@ -25,8 +24,9 @@ public class AnonymousNode extends Node{
     private int initialTime = 0;
     private boolean once = true;
     private double realRound = 0;
+    private boolean booleanMessage = true;
 
-    public AnonymousNode(double delta, double c){
+    public AnonymousNode(double delta, double c) {
         this.delta = delta;
         this.energy = 1;
         this.c = c;
@@ -34,7 +34,6 @@ public class AnonymousNode extends Node{
         this.round = getRound(this.k, this.c, this.delta);
         this.initialTime = 0;
         this.halt = false;
-
     }
 
     public static double getRound(double k, double c, double delta) { return 2*k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)); }
@@ -46,7 +45,7 @@ public class AnonymousNode extends Node{
 
             // Collection Phase
             // pour le moment le node avec un id d 0 correspond au node leader. Je récupère ll'ernergie des noeuds sur un nombre de round donné
-            if (message.getDestination().getID() != 0 && (this.getTime() - this.initialTime) < (int)round && message.getFlag().equals("ENERGY")) {
+            if ( (this.getTime() - this.initialTime) < (int)round && message.getFlag().equals("ENERGY")) {
                // System.out.println("le node : " + message.getSender() + " dit : " + message.getContent() + " au node " + message.getDestination());
                 // System.out.println("contenu" + new Double(message.getContent().toString());
                 this.energy = this.energy + new Double(message.getContent().toString());
@@ -95,7 +94,6 @@ public class AnonymousNode extends Node{
     public void onClock () {
 
         //
-    if(this.getID() != 0) {
         if (!halt) {
             if ((this.getTime() - initialTime) < (int)this.round) {
                 double s = this.getNeighbors().size();
@@ -155,7 +153,7 @@ public class AnonymousNode extends Node{
                             this.energy = 1;
                             //System.out.println(" ROUND KKKKKKKKKKK " + round);
                             //System.out.println(" INITIAL KKKKKKKKKKKKK " + initialTime);
-                            this.round = getRound(k,delta,c);
+                            this.round = (int) getRound(k,delta,c);
                             //System.out.println(" k anonymous " + k);
                             //System.out.println(" delta anonymous " + round);
                             //System.out.println(" ROUND " + round);
@@ -181,6 +179,6 @@ public class AnonymousNode extends Node{
         }
 
         //System.out.println(" TEMPS " + this.getTime());
-    }
+
     }
 }
