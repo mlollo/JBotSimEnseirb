@@ -5,10 +5,12 @@ import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsim.event.ClockListener;
 import jbotsim.event.StartListener;
+import jbotsimx.Connectivity;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class DynamicNetwork implements StartListener, ClockListener{
 
@@ -17,18 +19,17 @@ public class DynamicNetwork implements StartListener, ClockListener{
 
     private Topology tp;
     private List<Link> links = new ArrayList<>();
-    private List<Link> innerLinks = new ArrayList<>();
+    private Link savedLink;
     private int timer;
     private int dynamicRound;
 
     /***
      * Initialisation de l'objet DynamicNetwork
      * @param tp nombre de noeuds
-     * @param links outer links
      * ***/
-    public DynamicNetwork(Topology tp, List<Link> links, int dynamicRound){
+    public DynamicNetwork(Topology tp, int dynamicRound){
         this.tp = tp;
-        this.links = links;
+        this.links = tp.getLinks();
         tp.addStartListener(this);
         tp.addClockListener(this);
         this.timer = 0;
@@ -42,7 +43,8 @@ public class DynamicNetwork implements StartListener, ClockListener{
         /*Start seulement si links contient des objets*/
         if (this.links.size() != 0) {
             /*On retire le premier lien sauvegarder dans la liste*/
-            this.tp.removeLink(this.links.get(0));
+            this.savedLink = this.tp.getLinks().get(0);
+            this.tp.removeLink(this.savedLink);
         }
     }
 
@@ -50,7 +52,7 @@ public class DynamicNetwork implements StartListener, ClockListener{
      * Modifie le graphe dynamiquement tout les slot de temps
      * ***/
     public void onClock(){
-        if (this.timer > this.dynamicRound) {
+        if (this.timer >= this.dynamicRound) {
             this.dynamicCircularLinks(this.links);
             this.timer = 0;
         } else {
@@ -65,25 +67,41 @@ public class DynamicNetwork implements StartListener, ClockListener{
      * @param savedLinks liste des liens à rendre dynamique
      * ***/
     private void dynamicCircularLinks(List<Link> savedLinks) {
-        try {
+        //try {
             /*Pour tout les liens dans savedLinks*/
-            savedLinks.forEach((Link linkSaved) -> {
+            //savedLinks = tp.getLinks();
+            /*savedLinks.forEach((Link linkSaved) -> {
                 /*Si aucun liens de tp.getLinks() match avec linkSaved alors :*/
-                if (this.tp.getLinks().stream().noneMatch(link -> link.equals(linkSaved))) {
+                /*if (this.tp.getLinks().stream().noneMatch(link -> link.equals(linkSaved))) {
                     /*On sauvegarde l'index de linkSaved dans la liste savedLinks*/
-                    int index = savedLinks.indexOf(linkSaved);
-                    log.debug(String.format("%s[onClock] links saved : %s", LOGGER, linkSaved));
-                    log.debug(String.format("%s[onClock] link none match index : %s", LOGGER, index));
+                    /*int index = savedLinks.indexOf(linkSaved);
+                    log.debug(String.format("%s[onClock][NoneMatch] links saved : %s", LOGGER, linkSaved));
+                    log.debug(String.format("%s[onClock][NoneMatch] link none match index : %s", LOGGER, index));
+                    log.info(String.format("%s[DynamicNetwork][NoneMatch] links list saved: %s", LOGGER, this.links));
+                    log.info(String.format("%s[DynamicNetwork][NoneMatch] links list tp : %s", LOGGER, tp.getLinks()));
                     /*En fonction de la direction on teste si cet index n'est pas le premier ou le dernier*/
-                    int k = 1;
-                    this.tp.addLink(linkSaved);
-                    while(true) {
+                    this.tp.addLink(this.savedLink);
+
+                    boolean isconnect = false;
+                    Link testLink = null;
+                    while(!isconnect) {
+                        testLink = tp.getLinks().get(0);
+                        if (!testLink.equals(savedLink)) {
+                            this.tp.removeLink(testLink);
+                        }
+                        if (Connectivity.isConnected(this.tp)) {
+                            this.savedLink = testLink;
+                            //log.debug(String.format("%s[onClock] link saved : %s", LOGGER, this.savedLink));
+                            isconnect = true;
+                        } else {
+                            this.tp.addLink(testLink);
+                        }
+                    }
+                    /*while(true) {
                         if (this.tp.getLinks().get(0).endpoint(0).getNeighbors().size() > 1 && this.tp.getLinks().get(0).endpoint(1).getNeighbors().size() > 1 && index + k == savedLinks.size()) {
-                            /*On retire soit le liens précédent ou suivant cet index présent dans la liste savedLinks*/
                             this.tp.removeLink(savedLinks.get(0));
                             throw new BreakException();
                         } else if (this.tp.getLinks().get(index + k).endpoint(0).getNeighbors().size() > 1 && this.tp.getLinks().get(index + k).endpoint(1).getNeighbors().size() > 1){
-                            /*On retire soit le dernier ou le premier liens présent dans savedLinks*/
                             this.tp.removeLink(savedLinks.get(index + k));
                             throw new BreakException();
                         } else {
@@ -93,7 +111,7 @@ public class DynamicNetwork implements StartListener, ClockListener{
                                 k=1;
                             }
                         }
-                    }
+                    }*/
 
 
                     //if (direction ? index > 0 : index < savedLinks.size() - 1) {
@@ -104,9 +122,9 @@ public class DynamicNetwork implements StartListener, ClockListener{
                     /*    this.tp.removeLink(savedLinks.get(direction ? savedLinks.size() - 1 : 0));
                     }
                     /*On ajoute le lien qui ne se trouve pas dans tp.getLinks()*/
-                }
-            });
-        } catch (BreakException ignored) { }
+              //  }
+            //);
+        //} catch (BreakException ignored) { }
     }
 
     /***
@@ -176,7 +194,6 @@ public class DynamicNetwork implements StartListener, ClockListener{
     private void onClockLogs() {
         log.debug(String.format("%s[onClock] list links topo : %s", LOGGER, this.tp.getLinks()));
         log.debug(String.format("%s[onClock] list outer links saved : %s", LOGGER, this.links));
-        log.debug(String.format("%s[onClock] list inner links saved : %s", LOGGER, this.innerLinks));
         log.debug(String.format("%s[onClock] density : %s", LOGGER, this.getDensity()));
         log.debug(String.format("%s[onClock] est ce que le graphe est connexe %s", LOGGER, isConnexe(this.tp)));
     }

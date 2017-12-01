@@ -31,15 +31,14 @@ public class Main {
     private static int width = 1920;   /*Resolution de la fenêtre JBotSim*/
     private static int height = 1080;  /*Resolution de la fenêtre JBotSim*/
     private static int nbNodes = 6;   /*Nombre de noeuds*/
-    private static double round = DynamicTopologyGenerator.generateRound( 3, 1.000001, 2);
 
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
         List<Link> list = DynamicTopologyGenerator.generateDenseCircle(
                 tp,
-                new NodeLeader(round),
-                generateAnonymousNodeList(nbNodes, round, 4), nbNodes,
+                new NodeLeader(4, 3),
+                generateAnonymousNodeList(nbNodes, 4, 3), nbNodes,
                 0.5, width/4, height/4, height/8
         );
 
@@ -52,10 +51,10 @@ public class Main {
         new JViewer(tp);
     }
 
-    public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double round, double delta) {
+    public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double delta, double c) {
         List<AnonymousNode> anonymousNodeList = new ArrayList<>();
         for (int i = 0; i < nbNodes; i++) {
-            anonymousNodeList.add(new AnonymousNode(round, delta));
+            anonymousNodeList.add(new AnonymousNode(delta, c));
         }
         return anonymousNodeList;
     }
