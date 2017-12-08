@@ -23,6 +23,13 @@ public class DynamicTopologyGenerator {
     public DynamicTopologyGenerator(){ }
 
     public static double getDensity(Topology tp, int nbNodes) { return (double)tp.getLinks().size() / (double)((nbNodes * (nbNodes - 1)) / 2); }
+    public static double getAverageDelta(Topology tp, int nbNodes) {
+        int delta = 0;
+        for (int i = 0; i < nbNodes; i++) {
+            delta = tp.getNodes().get(i).getNeighbors().size() + delta;
+        }
+        return (double)delta/(double)nbNodes;
+    }
     /***
      * Créer une constellation de noeuds circulaire
      * Créer un graphe en sauvegardant les connecteurs Link dans la liste links
@@ -54,22 +61,14 @@ public class DynamicTopologyGenerator {
         return tp.getLinks();
     }
 
-    public static void  generateFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, double errDensity, int delta,int x, int y, int radius) {
+    public static void  generateFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int delta,int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
-        Random numberRandom = new Random();
-        boolean isconnect = false;
-        long timer = System.currentTimeMillis() + 1500 + numberRandom.nextInt();
+        long nbMaxLinks = Math.round(nbNodes *(nbNodes - 1)/2);
         long nbLinks = Math.round(density * nbNodes * (nbNodes - 1) / 2);
 
-        isconnect = generateLinksFairCircle(tp, nbNodes, nbLinks, delta, numberRandom, isconnect);
-        while(!isconnect || Math.abs(density - getDensity(tp, nbNodes)) > errDensity) {
-            if (timer - System.currentTimeMillis() <= 0 ) {
-                log.info(String.format("%s timeout", LOGGER));
-                timer = System.currentTimeMillis() + 1500 + numberRandom.nextInt();
-                numberRandom = new Random();
-            }
-            isconnect = generateLinksFairCircle(tp, nbNodes, nbLinks, delta, numberRandom, isconnect);
-        }
+        generateLinksFairCircle(tp, nbNodes, nbLinks, nbMaxLinks, delta);
+        log.info(String.format("%s Output Density %f", LOGGER, (float)getDensity(tp, nbNodes)));
+        log.info(String.format("%s Average Delta %f", LOGGER, getAverageDelta(tp, nbNodes)));
     }
 
 
@@ -87,14 +86,16 @@ public class DynamicTopologyGenerator {
         }
     }
 
-    private static boolean generateLinksFairCircle(Topology tp, int nbNodes, long nbLinks, int delta, Random numberRandom, boolean isconnect) {
-        for (int link = 0 ; link < nbLinks ; link++) {
-            int random1 = numberRandom.nextInt(nbNodes);
-            int random2 = numberRandom.nextInt(nbNodes);
-            //log.debug(String.format("%s rand1 %s", LOGGER,random1));
-            //log.debug(String.format("%s rand2 %s", LOGGER, random2));
-            //System.out.println(getDensity(tp, nbNodes));
-
+    private static void generateLinksFairCircle(Topology tp, int nbNodes, long nbLinks, long nbMaxlinks, int delta) {
+        Random numberRandom = new Random();
+        int random1;
+        int random2;
+        boolean isconnect = false;
+        long iteration = 0;
+        boolean end = false;
+        while (!end && tp.getLinks().size() < nbLinks || tp.getLinks().size() >= nbLinks && !isconnect) {
+            random1 = numberRandom.nextInt(nbNodes);
+            random2 = numberRandom.nextInt(nbNodes);
             if (random1 != random2 && tp.getNodes().get(random1).getNeighbors().size() < delta && tp.getNodes().get(random2).getNeighbors().size() < delta) {
                 tp.addLink(
                         new Link(
@@ -102,14 +103,28 @@ public class DynamicTopologyGenerator {
                                 tp.getNodes().get(random2)
                         )
                 );
+            } else if (tp.getNodes().get(random1).getNeighbors().size() == delta || tp.getNodes().get(random2).getNeighbors().size() == delta){
+                iteration++;
             }
-            if (Connectivity.isConnected(tp)) {
+            if (!isconnect && Connectivity.isConnected(tp)) {
                 isconnect = true;
-            } else {
-                tp.restart();
+            }
+            if (iteration > 4*nbMaxlinks) {
+                if (isconnect) {
+                    end = true;
+                } /*else {
+                    log.debug(String.format("%s[createGraph] clearLinks", LOGGER));
+                    removeLinks(tp, Math.round(tp.getLinks().size()/2));
+                }*/
             }
         }
-        return isconnect;
+    }
+
+    private static void removeLinks(Topology tp, int nbLinks) {
+        while(tp.getLinks().size() > nbLinks) {
+            log.debug(String.format("%s[createGraph] clearLinks %d , %d", LOGGER, tp.getLinks().size(), nbLinks));
+            tp.removeLink(tp.getLinks().get(0));
+        }
     }
 
     private static void generateLinksCircle(Topology tp, int nbNodes) {
