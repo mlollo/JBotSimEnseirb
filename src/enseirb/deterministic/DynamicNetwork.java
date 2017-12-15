@@ -22,6 +22,7 @@ public class DynamicNetwork implements StartListener, ClockListener{
     private Link savedLink;
     private int timer;
     private int dynamicRound;
+    private boolean isGraphDynamic;
 
     /***
      * Initialisation de l'objet DynamicNetwork
@@ -34,6 +35,7 @@ public class DynamicNetwork implements StartListener, ClockListener{
         tp.addClockListener(this);
         this.timer = 0;
         this.dynamicRound = dynamicRound;
+        this.isGraphDynamic = true;
         log.info(String.format("%s[DynamicNetwork] links list : %s", LOGGER, links));
     }
 
@@ -45,6 +47,20 @@ public class DynamicNetwork implements StartListener, ClockListener{
             /*On retire le premier lien sauvegarder dans la liste*/
             this.savedLink = this.tp.getLinks().get(0);
             this.tp.removeLink(this.savedLink);
+            boolean isconnect = Connectivity.isConnected(this.tp);
+            int i = 0;
+            while (!isconnect && i < this.tp.getLinks().size()) {
+                this.tp.addLink(this.savedLink);
+                this.savedLink = this.tp.getLinks().get(0);
+                this.tp.removeLink(this.savedLink);
+                isconnect = Connectivity.isConnected(this.tp);
+                i++;
+            }
+            if (i == this.tp.getLinks().size()) {
+                this.tp.addLink(this.savedLink);
+                this.isGraphDynamic = false;
+                log.info(String.format("%s[DynamicNetwork] isGraphDynamic %b", LOGGER, false));
+            }
         }
     }
 
@@ -52,13 +68,14 @@ public class DynamicNetwork implements StartListener, ClockListener{
      * Modifie le graphe dynamiquement tout les slot de temps
      * ***/
     public void onClock(){
-        if (this.timer >= this.dynamicRound) {
-            this.dynamicCircularLinks(this.links);
-            this.timer = 0;
-        } else {
-            this.timer++;
+        if (this.isGraphDynamic) {
+            if (this.timer >= this.dynamicRound) {
+                this.dynamicCircularLinks(this.links);
+                this.timer = 0;
+            } else {
+                this.timer++;
+            }
         }
-        //this.onClockLogs();
     }
 
     /***
@@ -91,7 +108,7 @@ public class DynamicNetwork implements StartListener, ClockListener{
                         }
                         if (Connectivity.isConnected(this.tp)) {
                             this.savedLink = testLink;
-                            //log.debug(String.format("%s[onClock] link saved : %s", LOGGER, this.savedLink));
+                            log.debug(String.format("%s[onClock] link saved : %s", LOGGER, this.savedLink));
                             isconnect = true;
                         } else {
                             this.tp.addLink(testLink);

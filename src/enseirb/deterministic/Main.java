@@ -29,7 +29,7 @@ public class Main {
 
     private static int width = 1920;   /*Resolution de la fenêtre JBotSim*/
     private static int height = 1080;  /*Resolution de la fenêtre JBotSim*/
-    private static int nbNodes = 6;   /*Nombre de noeuds*/
+    private static int nbNodes = 8;   /*Nombre de noeuds*/
     //private static float density = 0.2;   /*Nombre de noeuds*/
 
     public static void main(String[] args) {
@@ -37,11 +37,11 @@ public class Main {
         tp.disableWireless();
         DynamicTopologyGenerator.generateFairCircle(
                 tp,
-                new NodeLeader(4, 3),
-                generateAnonymousNodeList(nbNodes, 4, 3),
-                //new Node(),
-                //generateNodeList(nbNodes),
-                nbNodes, 0.8, 4,width/4, height/4, height/8
+                //new NodeLeader(4, 3),
+                //generateAnonymousNodeList(nbNodes, 4, 3),
+                new Node(),
+                generateNodeList(nbNodes),
+                nbNodes, 0.6, 4,width/4, height/4, height/8
         );
         //int[] x = {150, 200, 200, 200, 250, 100};
         //int[] y = {50, 100, 150, 200, 200, 100};
@@ -53,12 +53,12 @@ public class Main {
         int[] y = {250, 200, 150, 100, 100, 150};
         int[][] link = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {2, 5}};
         DynamicTopologyGenerator.generateTopo(tp, x, y, link, 3, 3);*/
-        //new DynamicNetwork(tp, 2);
+        new DynamicNetwork(tp, 2);
 
         log.info(String.format("%s[Init JViewer]", LOGGER));
-        tp.setClockSpeed(0);
+        tp.setClockSpeed(500);
         tp.start();
-        //new JViewer(tp);
+        new JViewer(tp);
     }
 
     public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double delta, double c) {
