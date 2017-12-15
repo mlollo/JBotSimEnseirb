@@ -3,10 +3,10 @@ package enseirb.deterministic;
 import enseirb.algo.AnonymousNode;
 import enseirb.algo.NodeLeader;
 import enseirb.algo.TauAnonymousNode;
-import enseirb.algo.TauNodeLeader;
 import enseirb.generator.DynamicTopologyGenerator;
 import jbotsim.Node;
 import jbotsim.Topology;
+import jbotsim.ui.JClock;
 import jbotsim.ui.JViewer;
 import org.apache.log4j.Logger;
 
@@ -29,38 +29,49 @@ public class Main {
     private static Logger log = Logger.getLogger(Main.class);
     private static final String LOGGER = "[Dynamic][Main]";
 
-    private static int width = 1920;   /*Resolution de la fenêtre JBotSim*/
-    private static int height = 1080;  /*Resolution de la fenêtre JBotSim*/
-    private static int nbNodes = 5;   /*Nombre de noeuds*/
-    private static int delta = 5;
-
-    //private static float density = 0.2;   /*Nombre de noeuds*/
-
     public static void main(String[] args) {
+        int width = 1920;   /*Resolution de la fenêtre JBotSim*/
+        int height = 1080;  /*Resolution de la fenêtre JBotSim*/
+        int nbNodes = 10;   /*Nombre de noeuds*/
+        int delta = 6; /*Nombre de voisins maximum que chaque peut posséder*/
+        double density = 0.2; /*Density target*/
+
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
-        DynamicTopologyGenerator.generateCircle(
-                tp,
-                new TauNodeLeader(nbNodes,delta),
-                generateTauAnonymousNodeList(nbNodes,nbNodes,delta),
-                //new Node(),
-                //generateNodeList(nbNodes),
-                nbNodes,width/4, height/4, height/8
-        );
-        //int[] x = {150, 200, 200, 200, 250, 100};
-        //int[] y = {50, 100, 150, 200, 200, 100};
-        //int[][] link = {{0, 1}, {1, 2}, {2, 3}, {2, 4}, {5, 0}};
-        /*int[] x = {250, 200, 200, 200, 150, 100};
-        int[] y = {200, 100, 150, 200, 50, 100};
-        int[][] link = {{4, 1}, {1, 2}, {2, 3}, {0, 2}, {4, 5}};*/
-        /*int[] x = {100, 100, 100, 100, 150, 150};
-        int[] y = {250, 200, 150, 100, 100, 150};
-        int[][] link = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {2, 5}};
-        DynamicTopologyGenerator.generateTopo(tp, x, y, link, 3, 3);*/
-        new DynamicNetwork(tp, 2);
 
+        /*Topology Circle*/
+        //DynamicTopologyGenerator.generateCircle(tp, new NodeLeader(nbNodes,delta), generateAnonymousNodeList(nbNodes,delta,delta), nbNodes,width/4, height/4, height/8);
+        //DynamicTopologyGenerator.generateCircle(tp, new Node(), generateNodeList(nbNodes), nbNodes,width/4, height/4, height/8);
+
+        /*Topology Line*/
+        //DynamicTopologyGenerator.generateLine(tp, new NodeLeader(nbNodes,delta), generateAnonymousNodeList(nbNodes,delta,delta), nbNodes,width/4, height/4, height/8);
+        //DynamicTopologyGenerator.generateLine(tp, new Node(), generateNodeList(nbNodes), nbNodes,width/4, height/4, height/8);
+
+        /*Topology Star*/
+        //DynamicTopologyGenerator.generateStar(tp, new NodeLeader(nbNodes,delta), generateAnonymousNodeList(nbNodes,delta,delta), nbNodes,width/4, height/4, height/8);
+        //DynamicTopologyGenerator.generateStar(tp, new Node(), generateNodeList(nbNodes), nbNodes,width/4, height/4, height/8);
+
+        /*Topology Circle with a density parameter*/
+        //DynamicTopologyGenerator.generateDenseCircle(tp, new NodeLeader(nbNodes,delta), generateAnonymousNodeList(nbNodes,delta,delta), nbNodes, density, width/4, height/4, height/8);
+        //DynamicTopologyGenerator.generateDenseCircle(tp, new Node(), generateNodeList(nbNodes), nbNodes,density, width/4, height/4, height/8);
+
+        /*Topology Randomly Circle with a density parameter and a parameter delta : each nodes respect a limit of neighbors delta*/
+        //DynamicTopologyGenerator.generateRandomFairCircle(tp, new NodeLeader(nbNodes,delta), generateAnonymousNodeList(nbNodes,delta,delta), nbNodes, density, delta, width/4, height/4, height/8);
+        DynamicTopologyGenerator.generateRandomFairCircle(tp, new Node(), generateNodeList(nbNodes), nbNodes, density, delta, width/4, height/4, height/8);
+
+        /*Topology specific or with a list of parameters*/
+        //int[] x = {100, 100, 100, 100, 150, 150};int[] y = {250, 200, 150, 100, 100, 150};int[][] link = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {2, 5}};
+        //DynamicTopologyGenerator.generateTopo(tp, x, y, link, 3, 3);
+        //DynamicTopologyGenerator.generateTopo0(tp, 3,3);
+
+        /*Add Dynamic Links to the Topology*/
+        new DynamicNetwork(tp, 2, false);
+
+        /*Options for decrease the clock as fast as possible and other options*/
+        tp.setClockModel(JClock.class);
+        tp.setClockSpeed(0);
+        /*Start the clock and view the Topology*/
         log.info(String.format("%s[Init JViewer]", LOGGER));
-        tp.setClockSpeed(500);
         tp.start();
         new JViewer(tp);
     }

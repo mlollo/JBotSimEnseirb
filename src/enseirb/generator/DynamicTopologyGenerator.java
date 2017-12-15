@@ -43,19 +43,22 @@ public class DynamicTopologyGenerator {
      * @param y ordonnées du centre du cercle
      * @param radius rayon du cercle
      * ***/
-    public static List<Link> generateCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) {
+    public static void generateCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         generateLinksCircle(tp, nbNodes);
-        return tp.getLinks();
     }
 
-    public static List<Link> generateLine(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) {
+    public static void generateLine(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         generateLinksLine(tp, nbNodes);
-        return tp.getLinks();
     }
 
-    public static List<Link> generateDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int x, int y, int radius) {
+    public static void generateStar(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) {
+        generateNodesStar(tp, leader, anonymous, nbNodes, x, y, radius);
+        generateLinksStar(tp, nbNodes);
+    }
+
+    public static void generateDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         Random numberRandom = new Random();
         boolean isconnect = false;
@@ -64,10 +67,10 @@ public class DynamicTopologyGenerator {
         while(!isconnect) {
             isconnect = generateLinksDenseCircle(tp, nbNodes, nbLinks, numberRandom, isconnect);
         }
-        return tp.getLinks();
+        log.info(String.format("%s Output Density %f", LOGGER, (float)getDensity(tp, nbNodes)));
     }
 
-    public static void  generateFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int delta,int x, int y, int radius) {
+    public static void  generateRandomFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int delta,int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         long nbMaxLinks = Math.round(nbNodes *(nbNodes - 1)/2);
         long nbLinks = Math.round(density * nbNodes * (nbNodes - 1) / 2);
@@ -92,6 +95,16 @@ public class DynamicTopologyGenerator {
         }
     }
 
+    private static void generateNodesStar(Topology tp, Node leader, List<? extends Node> nodes, int nbNodes, int x, int y, int radius){
+        double angle = 2 * Math.PI / (nbNodes - 1);
+        tp.addNode(x, y, leader);
+        log.debug(String.format("%s[createGraph] node leader 0", LOGGER));
+        for (int k = 0 ; k < nbNodes - 1; k++){
+            tp.addNode(x + radius * Math.cos(angle*k), y + radius * Math.sin(angle*k), nodes.get(k));
+            log.debug(String.format("%s[createGraph] node anonymous %s", LOGGER, tp.getNodes().get(k + 1).getID()));
+        }
+    }
+
     private static void generateLinksFairCircle(Topology tp, int nbNodes, long nbLinks, long nbMaxlinks, int delta) {
         Random numberRandom = new Random();
         int random1;
@@ -103,12 +116,11 @@ public class DynamicTopologyGenerator {
             random1 = numberRandom.nextInt(nbNodes);
             random2 = numberRandom.nextInt(nbNodes);
             if (random1 != random2 && tp.getNodes().get(random1).getNeighbors().size() < delta && tp.getNodes().get(random2).getNeighbors().size() < delta) {
-                tp.addLink(
-                        new Link(
-                                tp.getNodes().get(random1),
-                                tp.getNodes().get(random2)
-                        )
-                );
+                Link link12 = new Link(tp.getNodes().get(random1), tp.getNodes().get(random2));
+                Link link21 = new Link(tp.getNodes().get(random2), tp.getNodes().get(random1));
+                if (!tp.getLinks().contains(link12) && !tp.getLinks().contains(link21)) {
+                    tp.addLink(link12);
+                }
             } else if (tp.getNodes().get(random1).getNeighbors().size() == delta || tp.getNodes().get(random2).getNeighbors().size() == delta){
                 iteration++;
             }
@@ -166,6 +178,18 @@ public class DynamicTopologyGenerator {
                         )
                 );
             }
+        }
+    }
+
+    private static void generateLinksStar(Topology tp, int nbNodes) {
+        /*Création du k-ieme liens entre le noeuds k-1 -> k ou k -> 0*/
+        for (int k = 1 ; k < nbNodes ; k++) {
+            tp.addLink(
+                    new Link(
+                            tp.getNodes().get(0),
+                            tp.getNodes().get(k)
+                    )
+            );
         }
     }
 

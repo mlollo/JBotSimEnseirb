@@ -3,6 +3,7 @@ package enseirb.algo;
 import jbotsim.Message;
 import jbotsim.Node;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 

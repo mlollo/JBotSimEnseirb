@@ -35,14 +35,14 @@ public class Main {
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
-        List<Link> list = DynamicTopologyGenerator.generateDenseCircle(
+        DynamicTopologyGenerator.generateDenseCircle(
                 tp,
                 new NodeLeader(4, 3),
                 generateAnonymousNodeList(nbNodes, 4, 3), nbNodes,
                 0.5, width/4, height/4, height/8
         );
 
-        new DynamicNetwork(tp, list);
+        //new DynamicNetwork(tp, list);
         //new DynamicNetwork(tp, DynamicTopologyGenerator.generateRing(tp, new NodeLeader(round), AnonymousNode.class, nbNodes, width/4, height/4, height/8), DynamicTopologyGenerator.addInnerRing(tp, nbNodes, 5));
 
         log.info(String.format("%s[Init JViewer]", LOGGER));
