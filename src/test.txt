@@ -106,3 +106,8 @@ k =6.0 nombre de round = 575
 k =5.0 nombre de round = 219
 k =5.0 nombre de round = 354
 k =5.0 nombre de round = 159
+k =5.0 nombre de round = 141
+k =5.0 nombre de round = 142
+k =5.0 nombre de round = 125
+k =5.0 nombre de round = 218
+k =5.0 nombre de round = 293

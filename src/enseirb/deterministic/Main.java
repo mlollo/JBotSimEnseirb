@@ -3,6 +3,7 @@ package enseirb.deterministic;
 import enseirb.algo.AnonymousNode;
 import enseirb.algo.NodeLeader;
 import enseirb.algo.TauAnonymousNode;
+import enseirb.algo.TauNodeLeader;
 import enseirb.generator.DynamicTopologyGenerator;
 import jbotsim.Node;
 import jbotsim.Topology;
@@ -57,7 +58,8 @@ public class Main {
 
         /*Topology Randomly Circle with a density parameter and a parameter delta : each nodes respect a limit of neighbors delta*/
         //DynamicTopologyGenerator.generateRandomFairCircle(tp, new NodeLeader(nbNodes,delta), generateAnonymousNodeList(nbNodes,delta,delta), nbNodes, density, delta, width/4, height/4, height/8);
-        DynamicTopologyGenerator.generateRandomFairCircle(tp, new Node(), generateNodeList(nbNodes), nbNodes, density, delta, width/4, height/4, height/8);
+        DynamicTopologyGenerator.generateRandomFairCircle(tp, new TauNodeLeader(nbNodes,delta), generateTauAnonymousNodeList(nbNodes,nbNodes,delta), nbNodes, density, delta, width/4, height/4, height/8);
+        //DynamicTopologyGenerator.generateRandomFairCircle(tp, new Node(), generateNodeList(nbNodes), nbNodes, density, delta, width/4, height/4, height/8);
 
         /*Topology specific or with a list of parameters*/
         //int[] x = {100, 100, 100, 100, 150, 150};int[] y = {250, 200, 150, 100, 100, 150};int[][] link = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {2, 5}};

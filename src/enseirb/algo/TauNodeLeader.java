@@ -49,7 +49,7 @@ public class TauNodeLeader extends Node {
                 //System.out.println("le node : " + message.getSender()  + " dit : " + message.getContent() + " au node " + message.getDestination() );
                 // System.out.println("contenu" + new Double(message.getContent().toString());
                 energy = energy + new Double(message.getContent().toString());
-                //System.out.println("energy leader " + energy);
+                System.out.println("energy leader " + energy);
 
 
             }
