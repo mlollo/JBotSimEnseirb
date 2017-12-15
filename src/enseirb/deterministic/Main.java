@@ -39,13 +39,13 @@ public class Main {
     public static void main(String[] args) {
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
-        DynamicTopologyGenerator.generateCircle(
+        DynamicTopologyGenerator.generateFairCircle(
                 tp,
                 new TauNodeLeader(nbNodes,delta),
                 generateTauAnonymousNodeList(nbNodes,nbNodes,delta),
                 //new Node(),
                 //generateNodeList(nbNodes),
-                nbNodes,width/4, height/4, height/8
+                nbNodes,0.2,delta,/4, height/4, height/8
         );
         //int[] x = {150, 200, 200, 200, 250, 100};
         //int[] y = {50, 100, 150, 200, 200, 100};
