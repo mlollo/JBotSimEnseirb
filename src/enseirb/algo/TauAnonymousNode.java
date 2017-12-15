@@ -1,11 +1,9 @@
 package enseirb.algo;
 
-import enseirb.deterministic.DynamicTopologyGenerator;
+
 import jbotsim.Message;
 import jbotsim.Node;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class TauAnonymousNode extends Node {
 
@@ -19,9 +17,9 @@ public class TauAnonymousNode extends Node {
     private double energy;
 
 
-    public TauAnonymousNode(double k, double c){
-        this.delta = 2;
-        this.c = c;
+    public TauAnonymousNode(double k, double delta){
+        this.delta = delta;
+        this.c = 3;
         this.k = k;
         this.halt = false;
         this.counter = 0;

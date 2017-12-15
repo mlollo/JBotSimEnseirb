@@ -17,13 +17,13 @@ public class TauNodeLeader extends Node {
     private int counter;
     private PrintWriter myWriter;
 
-    public TauNodeLeader(double k, double c){
-
+    public TauNodeLeader(double k, double delta){
+        this.delta = delta;
         this.nbRound = 0;
         this.nbRoundtest = 2;
         this.halt = false;
         this.counter=0;
-        this.c = c;
+        this.c = 3;
         this.k = k;
 
     }
@@ -42,14 +42,14 @@ public class TauNodeLeader extends Node {
 
 
             int temp1 = Double.compare((k - 1 - 1 / Math.pow(k, c)), energy);
-            System.out.println("temp1 " + energy);
-            System.out.println("temp1 " + temp1);
+            //System.out.println("temp1 " + energy);
+            //System.out.println("temp1 " + temp1);
 
             if (message.getFlag().equals("ENERGY")) {
                 //System.out.println("le node : " + message.getSender()  + " dit : " + message.getContent() + " au node " + message.getDestination() );
                 // System.out.println("contenu" + new Double(message.getContent().toString());
                 energy = energy + new Double(message.getContent().toString());
-                System.out.println("energy leader " + energy);
+                //System.out.println("energy leader " + energy);
 
 
             }

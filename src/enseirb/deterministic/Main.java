@@ -2,6 +2,8 @@ package enseirb.deterministic;
 
 import enseirb.algo.AnonymousNode;
 import enseirb.algo.NodeLeader;
+import enseirb.algo.TauAnonymousNode;
+import enseirb.algo.TauNodeLeader;
 import enseirb.generator.DynamicTopologyGenerator;
 import jbotsim.Node;
 import jbotsim.Topology;
@@ -29,19 +31,21 @@ public class Main {
 
     private static int width = 1920;   /*Resolution de la fenêtre JBotSim*/
     private static int height = 1080;  /*Resolution de la fenêtre JBotSim*/
-    private static int nbNodes = 8;   /*Nombre de noeuds*/
+    private static int nbNodes = 5;   /*Nombre de noeuds*/
+    private static int delta = 5;
+
     //private static float density = 0.2;   /*Nombre de noeuds*/
 
     public static void main(String[] args) {
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
-        DynamicTopologyGenerator.generateFairCircle(
+        DynamicTopologyGenerator.generateCircle(
                 tp,
-                //new NodeLeader(4, 3),
-                //generateAnonymousNodeList(nbNodes, 4, 3),
-                new Node(),
-                generateNodeList(nbNodes),
-                nbNodes, 0.6, 4,width/4, height/4, height/8
+                new TauNodeLeader(nbNodes,delta),
+                generateTauAnonymousNodeList(nbNodes,nbNodes,delta),
+                //new Node(),
+                //generateNodeList(nbNodes),
+                nbNodes,width/4, height/4, height/8
         );
         //int[] x = {150, 200, 200, 200, 250, 100};
         //int[] y = {50, 100, 150, 200, 200, 100};
@@ -75,5 +79,13 @@ public class Main {
             nodeList.add(new Node());
         }
         return nodeList;
+    }
+
+    public static List<TauAnonymousNode> generateTauAnonymousNodeList(int nbNodes, double k, double delta) {
+        List<TauAnonymousNode> anonymousNodeList = new ArrayList<>();
+        for (int i = 0; i < nbNodes; i++){
+            anonymousNodeList.add(new TauAnonymousNode(k, delta));
+        }
+        return anonymousNodeList;
     }
 }
