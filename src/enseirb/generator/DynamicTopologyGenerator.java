@@ -49,6 +49,12 @@ public class DynamicTopologyGenerator {
         return tp.getLinks();
     }
 
+    public static List<Link> generateLine(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) {
+        generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
+        generateLinksLine(tp, nbNodes);
+        return tp.getLinks();
+    }
+
     public static List<Link> generateDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         Random numberRandom = new Random();
@@ -143,6 +149,20 @@ public class DynamicTopologyGenerator {
                         new Link(
                                 tp.getNodes().get(k),
                                 tp.getNodes().get(0)
+                        )
+                );
+            }
+        }
+    }
+
+    private static void generateLinksLine(Topology tp, int nbNodes) {
+        /*Création du k-ieme liens entre le noeuds k-1 -> k ou k -> 0*/
+        for (int k = 0 ; k < nbNodes ; k++) {
+            if (k >= 1) {
+                tp.addLink(
+                        new Link(
+                                tp.getNodes().get(k - 1),
+                                tp.getNodes().get(k)
                         )
                 );
             }
