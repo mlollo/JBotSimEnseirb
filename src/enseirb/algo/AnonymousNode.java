@@ -21,7 +21,7 @@ public class AnonymousNode extends Node{
     private double c ;
     private double energyMax;
     private double nodeNumber;
-    private int counter = 0;
+    private int counter;
     private int initialTime = 0;
     private boolean once = true;
     private double realRound = 0;
@@ -35,6 +35,8 @@ public class AnonymousNode extends Node{
         this.round = getRound(this.k, this.c, this.delta);
         this.initialTime = 0;
         this.halt = false;
+        this.counter = 1;
+        System.out.println("ROUND a" + round);
     }
 
     public static double getRound(double k, double c, double delta) { return 2*k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)); }
@@ -97,6 +99,7 @@ public class AnonymousNode extends Node{
         //
         if (!halt) {
             if ((this.getTime() - initialTime) < (int)this.round) {
+
                 double s = this.getNeighbors().size();
 
                 int tmp = Double.compare(energy,0);
@@ -130,6 +133,7 @@ public class AnonymousNode extends Node{
                 if (this.getTime() - this.tempTime < (int)roundNumber) {
                     sendAll(new Message(this.energyMax, "ENERGYVEF"));
                     //System.out.println(" Envoie energy max" + this.energyMax);
+                    //System.out.println("anonymous " + this.getTime());
 
 
                 }
@@ -140,7 +144,7 @@ public class AnonymousNode extends Node{
 
 
                 if ((this.getTime() - this.tempTime) >= (int)roundNumber) {
-                    if ((this.getTime() - this.notificationNumber) < this.k) {
+                    if ((this.getTime() - (int) this.notificationNumber) < (int)k) {
                         if (halt) {
                             sendAll(new Message("halt", "HALT"));
                         }

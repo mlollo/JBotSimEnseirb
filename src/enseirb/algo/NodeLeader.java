@@ -15,7 +15,7 @@ public class NodeLeader extends Node {
     private double delta;
     private double energy = 0;
     private double c;
-    private double k = 4;
+    private double k ;
     private double nodeNumber;
     private boolean halt;
     private int tempTime;
@@ -24,24 +24,25 @@ public class NodeLeader extends Node {
     private boolean isCorrect = true;
     List<Double> energyArray = new ArrayList();
     private int initialTime;
-    private  int counter = 0;
+    private  int counter;
     private boolean once = true;
     private double realRound = 0;
-    private PrintWriter myWriter;
-    private int kbis = 0;
+
 
     public NodeLeader(double delta, double c){
         this.delta = delta;
         this.c = c;
+        this.k = 4;
         this.round = getRound(this.k, this.c, this.delta);
         System.out.println("ROUND " + round);
 
         this.initialTime = 0;
         this.halt = false;
-        this.counter = 0;
+        this.counter = 1;
+
     }
 
-    public static double getRound(double k, double c, double delta) { return k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)) ; }
+    public static double getRound(double k, double c, double delta) { return 2*k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)) ; }
 
     @Override
     public void onMessage (Message message){
@@ -54,33 +55,7 @@ public class NodeLeader extends Node {
                 // System.out.println("contenu" + new Double(message.getContent().toString());
                 energy = energy + new Double(message.getContent().toString());
                 //System.out.println("energy leader " + energy);
-                int condition = Double.compare((k - 1 - 1 / Math.pow(k, c)), energy);
 
-                if(condition <= 0 && kbis != k){
-
-                    try {
-                        kbis = (int) k;
-                        FileWriter fw = new FileWriter("src/test.txt", true);
-                        BufferedWriter bw = new BufferedWriter(fw);
-
-                        myWriter = new PrintWriter(bw);
-                        String myString = "k =" + this.k + " nombre de round = " + (this.getTime() - this.initialTime);
-                        myWriter.println(myString);
-                        myWriter.close();
-
-
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }catch (IOException e) {
-                        //exception handling left as an exercise for the reader
-                    }
-
-                }
-
-
-            } else {
 
             }
 
@@ -158,6 +133,8 @@ public class NodeLeader extends Node {
             if ((this.getTime() -  initialTime) >= (int)round) {
                 if ((int)roundNumber == (this.getTime() - tempTime)) {
                     notificationNumber = this.getTime();
+
+                    //System.out.println("node " + this.getTime());
                 }
 
 

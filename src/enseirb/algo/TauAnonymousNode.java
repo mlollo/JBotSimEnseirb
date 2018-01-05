@@ -22,10 +22,12 @@ public class TauAnonymousNode extends Node {
         this.c = 3;
         this.k = k;
         this.halt = false;
-        this.counter = 0;
+        this.counter = 1;
         this.nbRoundtest=2;
         this.nbRound=0;
         this.energy = 1;
+        System.out.println("INITIALISATION energy anonymous  de " + this.getID() + "est "+ energy);
+
     }
 
 
@@ -42,9 +44,14 @@ public class TauAnonymousNode extends Node {
                 //System.out.println("le node : " + message.getSender()  + " dit : " + message.getContent() + " au node " + message.getDestination() );
                 // System.out.println("contenu" + new Double(message.getContent().toString());
                 energy = energy + new Double(message.getContent().toString());
-                //System.out.println("energy anonymous " + energy);
+                System.out.println("energy anonymous  de " + this.getID() + " est "+ energy +" temps " + this.getTime());
 
 
+            }
+
+            if (message.getFlag().equals("HALT")){
+                sendAll(new Message(1, "HALT"));
+                halt = true;
             }
 
             if(temp1 <= 0){
@@ -75,7 +82,8 @@ public class TauAnonymousNode extends Node {
                 if (tmp >= 0) {
                     if (counter == 0) {
                         sendAll(new Message(this.energy / (2 * (double) this.delta), "ENERGY"));
-                        this.energy = this.energy - this.energy * s / (2 * (double) this.delta);
+                       // System.out.println("energy envoyé "+ this.energy / (2 * (double) this.delta));
+                        this.energy = this.energy - (this.energy * s / (2 * (double) this.delta));
                         counter++;
                         nbRound++;
                        // System.out.println("banane");

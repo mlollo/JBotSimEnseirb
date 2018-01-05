@@ -7,7 +7,7 @@ import java.io.*;
 
 public class TauNodeLeader extends Node {
 
-    private double delta = 2;
+    private double delta ;
     private double energy = 0;
     private double c;
     private double k;
@@ -22,7 +22,7 @@ public class TauNodeLeader extends Node {
         this.nbRound = 0;
         this.nbRoundtest = 2;
         this.halt = false;
-        this.counter=0;
+        this.counter=1;
         this.c = 3;
         this.k = k;
 
@@ -49,7 +49,7 @@ public class TauNodeLeader extends Node {
                 //System.out.println("le node : " + message.getSender()  + " dit : " + message.getContent() + " au node " + message.getDestination() );
                 // System.out.println("contenu" + new Double(message.getContent().toString());
                 energy = energy + new Double(message.getContent().toString());
-                System.out.println("energy leader " + energy);
+                System.out.println("energy leader " + energy + " temps " + this.getTime());
 
 
             }
@@ -59,12 +59,13 @@ public class TauNodeLeader extends Node {
                 System.out.println("nb round bal "+ nbRound);
                 System.out.println("time "+ this.getTime());
                 halt = true;
+                sendAll(new Message(1, "HALT"));
                 try {
                     FileWriter fw = new FileWriter("src/test.txt", true);
                     BufferedWriter bw = new BufferedWriter(fw);
 
                     myWriter = new PrintWriter(bw);
-                    String myString = "k =" + this.k + " nombre de round = " + nbRound;
+                    String myString = "k =" + this.k + " nombre de round = " + nbRound + " avec un delta de " + delta;
                     myWriter.println(myString);
                     myWriter.close();
 
