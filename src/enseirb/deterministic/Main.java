@@ -7,7 +7,7 @@ import enseirb.algo.TauNodeLeader;
 import enseirb.generator.DynamicTopologyGenerator;
 import jbotsim.Node;
 import jbotsim.Topology;
-//import jbotsim.ui.JClock;
+import jbotsim.ui.JClock;
 import jbotsim.ui.JViewer;
 import org.apache.log4j.Logger;
 
@@ -31,12 +31,12 @@ public class Main {
     private static final String LOGGER = "[Dynamic][Main]";
 
     public static void main(String[] args) {
-        int width = 1920;   /*Resolution de la fenêtre JBotSim*/
-        int height = 1080;  /*Resolution de la fenêtre JBotSim*/
-        int nbNodes = 6;   /*Nombre de noeuds*/
-        int delta = 2; /*Nombre de voisins maximum que chaque peut posséder*/
+        int width = 4*1920;   /*Resolution de la fenêtre JBotSim*/
+        int height = 4*1080;  /*Resolution de la fenêtre JBotSim*/
+        int nbNodes = 10;   /*Nombre de noeuds*/
+        int delta = 3; /*Nombre de voisins maximum que chaque peut posséder*/
         double c = 3;
-        double density = 0.6; /*Density target*/
+        double density = 0.8; /*Density target*/
 
         Topology tp = new Topology(width/2, height/2, false);
         tp.disableWireless();
@@ -60,12 +60,6 @@ public class Main {
         /*Topology Randomly Circle with a density parameter and a parameter delta : each nodes respect a limit of neighbors delta*/
         DynamicTopologyGenerator.generateRandomFairCircle(tp, new NodeLeader(delta,c), generateAnonymousNodeList(nbNodes,delta,c), nbNodes, density, delta, width/4, height/4, height/8);
         //DynamicTopologyGenerator.generateRandomFairCircle(tp, new TauNodeLeader(nbNodes,delta), generateTauAnonymousNodeList(nbNodes,nbNodes,delta), nbNodes, density, delta, width/4, height/4, height/8);
-        /*DynamicTopologyGenerator.generateRandomFairCircle(tp,
-                new TauNodeLeader(nbNodes,delta),
-                generateTauAnonymousNodeList(nbNodes,nbNodes,delta),
-                //new Node(),
-                //generateNodeList(nbNodes),
-                nbNodes,density,delta,width/4, height/4, height/8);*/
         //DynamicTopologyGenerator.generateRandomFairCircle(tp, new Node(), generateNodeList(nbNodes), nbNodes, density, delta, width/4, height/4, height/8);
 
         /*Topology specific or with a list of parameters*/
@@ -75,15 +69,16 @@ public class Main {
 
         /*Add Dynamic Links to the Topology*/
         new DynamicNetwork(tp, 2, false);
+        log.info(String.format("%s[Incremental Counting] Number of total iterations %s for %s nodes", LOGGER, NodeLeader.getICNumberOfIterations(nbNodes, delta, c), nbNodes));
 
         /*Options for decrease the clock as fast as possible and other options*/
-        //tp.setClockModel(JClock.class);
+        tp.setClockModel(JClock.class);
         tp.setClockSpeed(0);
         /*Start the clock and view the Topology*/
         log.info(String.format("%s[Init JViewer]", LOGGER));
         tp.start();
-        new JViewer(tp);
-        System.out.println(tp.getTime());
+        //new JViewer(tp);
+        //System.out.println(tp.getTime());
     }
 
     public static List<AnonymousNode> generateAnonymousNodeList(int nbNodes, double delta, double c) {

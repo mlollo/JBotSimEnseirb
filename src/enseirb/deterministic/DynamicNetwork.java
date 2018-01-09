@@ -54,8 +54,28 @@ public class DynamicNetwork implements StartListener, ClockListener{
 
     public void onStart(){
         log.info(String.format("%s[onStart] Topology start", LOGGER));
+        this.initDynamicCircularLinks();
+    }
 
-        /*On retire le premier lien sauvegarder dans la liste*/
+    /***
+     * Modifie le graphe dynamiquement tout les slot de temps
+     * ***/
+    public void onClock(){
+        //log.info(String.format("%s[onClock] tp.getTime %s", LOGGER, tp.getTime()));
+        if (this.isDynamicGraph) {
+            if (tp.getTime() != 0 && tp.getTime() % this.dynamicRound == 0) {
+                //log.info(String.format("%s[onClock] tp.getTime %s", LOGGER, tp.getTime()));
+                this.dynamicCircularLinks();
+            }
+        }
+    }
+
+    /***
+     * Retire un connecteur et en ajoute un de façon à ce que le graphe reste connexe
+     * On retire le premier lien sauvegarder dans la liste
+     *
+     * ***/
+    private void initDynamicCircularLinks(){
         this.savedLink = this.tp.getLinks().get(this.isRandomDynamicNetwork ? r.nextInt(tp.getNodes().size()) : 0);
         this.tp.removeLink(this.savedLink);
         boolean isconnect = Connectivity.isConnected(this.tp);
@@ -74,17 +94,6 @@ public class DynamicNetwork implements StartListener, ClockListener{
         } else {
             log.debug(String.format("%s[onStart] link saved : %s", LOGGER, this.savedLink));
             log.debug(String.format("%s[onStart] links : %s", LOGGER, this.tp.getLinks()));
-        }
-    }
-
-    /***
-     * Modifie le graphe dynamiquement tout les slot de temps
-     * ***/
-    public void onClock(){
-        if (this.isDynamicGraph) {
-            if (tp.getTime() != 0 && tp.getTime() % this.dynamicRound == 0) {
-                this.dynamicCircularLinks();
-            }
         }
     }
 
