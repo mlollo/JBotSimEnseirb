@@ -1,34 +1,33 @@
 package enseirb.generator;
 
-import enseirb.algo.AnonymousNode;
-import enseirb.algo.NodeLeader;
+import enseirb.ic.NodeAnonymous;
+import enseirb.ic.NodeLeader;
 import jbotsim.Link;
 import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsimx.Connectivity;
 import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.PrintStream;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Timer;
+import java.util.concurrent.ThreadLocalRandom;
 
-public class DynamicTopologyGenerator {
+public class TopologyGenerator {
 
-    private static final Logger log = Logger.getLogger(DynamicTopologyGenerator.class);
+    private static final Logger log = Logger.getLogger(TopologyGenerator.class);
     private static final String LOGGER = "[Dynamic][Topology][Generator]";
 
-    public DynamicTopologyGenerator(){ }
+    public TopologyGenerator(){ }
 
     public static double getDensity(Topology tp, int nbNodes) { return (double)tp.getLinks().size() / (double)((nbNodes * (nbNodes - 1)) / 2); }
-    public static double getAverageDelta(Topology tp, int nbNodes) {
+    public static double getAverageDelta(Topology tp) {
         int delta = 0;
-        for (int i = 0; i < nbNodes; i++) {
+        for (int i = 0; i < tp.getNodes().size(); i++) {
             delta = tp.getNodes().get(i).getNeighbors().size() + delta;
         }
-        return (double)delta/(double)nbNodes;
+        return (double)delta/(double)tp.getNodes().size();
     }
     /***
      * Créer une constellation de noeuds circulaire
@@ -48,6 +47,12 @@ public class DynamicTopologyGenerator {
         generateLinksCircle(tp, nbNodes);
     }
 
+    public static void generateTwoCircle(Topology tp, Node leader, List<? extends Node> anonymous, Node leader1, List<? extends Node> anonymous1, int nbNodes, int x, int y, int radius) {
+        generateNodesCircle(tp, leader, anonymous, nbNodes, x + x/2, y, radius);
+        generateNodesCircle(tp, leader1, anonymous1, nbNodes, x - x/2, y, radius);
+        generateLinksTwoCircle(tp, nbNodes);
+    }
+
     public static void generateLine(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         generateLinksLine(tp, nbNodes);
@@ -63,23 +68,85 @@ public class DynamicTopologyGenerator {
         Random numberRandom = new Random();
         boolean isconnect = false;
         long nbLinks =  Math.round(density * nbNodes*(nbNodes-1) / 2);
-
+        log.debug(String.format("%s[Dense Circle] nblinks %s density %s", LOGGER, nbLinks, density));
+        long count = 0;
         while(!isconnect) {
-            isconnect = generateLinksDenseCircle(tp, nbNodes, nbLinks, numberRandom, isconnect);
+            generateLinksDenseCircle(tp, nbNodes, nbLinks, numberRandom);
+            if (Connectivity.isConnected(tp)) {
+                isconnect = true;
+            } else {
+                tp.clear();
+                generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
+            }
+            count++;
+            if (count > 100000){
+                log.info(String.format("%s Input Density %s isn't possible with %s nodes", LOGGER, density, nbNodes));
+                System.exit(1);
+            }
         }
-        log.info(String.format("%s Output Density %f", LOGGER, (float)getDensity(tp, nbNodes)));
+        log.info(String.format("%s[Dense Circle] Output Density %f size links %s", LOGGER, (float)getDensity(tp, nbNodes), tp.getLinks().size()));
+    }
+
+    public static void generateRandomDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, double err, int x, int y, int radius) {
+        generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
+        Random numberRandom = new Random();
+        boolean isconnect = false;
+        int minDensity = (int) Math.round(100 *(density - err));
+        int maxDensity = (int) Math.round(100 *(density + err));
+        double randomDensity = ThreadLocalRandom.current().nextInt(minDensity, maxDensity + 1) / (double)100;
+        long nbLinks =  Math.round(randomDensity * nbNodes*(nbNodes-1) / 2);
+        log.info(String.format("%s[Dense Circle] nblinks %s density %s err %s input random density %s", LOGGER, nbLinks, density, err, randomDensity));
+        long count = 0;
+        while(!isconnect) {
+            generateLinksDenseCircle(tp, nbNodes, nbLinks, numberRandom);
+            if (Connectivity.isConnected(tp)) {
+                isconnect = true;
+            } else if (Math.abs(getDensity(tp, nbNodes) - randomDensity) > err){
+                tp.clear();
+                generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
+            }
+            count++;
+            if (count > 100000){
+                log.info(String.format("%s Input Density %s isn't possible with %s nodes", LOGGER, density, nbNodes));
+                System.exit(1);
+            }
+        }
+        log.info(String.format("%s[Dense Circle] Output Density %f size links %s", LOGGER, (float)getDensity(tp, nbNodes), tp.getLinks().size()));
     }
 
     public static void  generateRandomFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int delta,int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         long nbMaxLinks = Math.round(nbNodes *(nbNodes - 1)/2);
         long nbLinks = Math.round(density * nbNodes * (nbNodes - 1) / 2);
+        Random r = new Random();
+        boolean isconnect = false;
+        long iteration = 0;
+        boolean end = false;
+        long count = 0;
+        while (!end && tp.getLinks().size() < nbLinks || tp.getLinks().size() >= nbLinks && !isconnect) {
+            log.debug(String.format("%s[Fair Circle] links size %s nblinks %s nbmaxlinks %s iterations %s isconnect %s end %s links %s", LOGGER, tp.getLinks().size(), nbLinks, nbMaxLinks, iteration, isconnect, end, tp.getLinks()));
+            iteration = generateLinksFairCircle(tp, nbNodes, delta, r, iteration);
 
-        generateLinksFairCircle(tp, nbNodes, nbLinks, nbMaxLinks, delta);
-        log.info(String.format("%s Output Density %f", LOGGER, (float)getDensity(tp, nbNodes)));
-        log.info(String.format("%s Average Delta %f", LOGGER, getAverageDelta(tp, nbNodes)));
+            if (!isconnect && Connectivity.isConnected(tp)) {
+                isconnect = true;
+            }
+            if (iteration > 4*nbMaxLinks) {
+                if (isconnect) {
+                    end = true;
+                } else if (tp.getLinks().size() >= nbLinks){
+                    tp.clear();
+                    generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
+                    count++;
+                    if (count > 100000){
+                        //log.debug(String.format("%s[createGraph] clearLinks", LOGGER));
+                        log.info(String.format("%s Input Density %s isn't possible with %s nodes", LOGGER, density, nbNodes));
+                        System.exit(1);
+                    }
+                }
+            }
+        }
+        log.info(String.format("%s Output Density %f Average Delta %s Size Links %s", LOGGER, (float)getDensity(tp, nbNodes), getAverageDelta(tp), tp.getLinks().size()));
     }
-
 
     private static void generateNodesCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, int x, int y, int radius){
         double angle = 2 * Math.PI / nbNodes;
@@ -105,64 +172,47 @@ public class DynamicTopologyGenerator {
         }
     }
 
-    private static void generateLinksFairCircle(Topology tp, int nbNodes, long nbLinks, long nbMaxlinks, int delta) {
-        Random numberRandom = new Random();
-        int random1;
-        int random2;
-        boolean isconnect = false;
-        long iteration = 0;
-        boolean end = false;
-        while (!end && tp.getLinks().size() < nbLinks || tp.getLinks().size() >= nbLinks && !isconnect) {
-            random1 = numberRandom.nextInt(nbNodes);
-            random2 = numberRandom.nextInt(nbNodes);
-            if (random1 != random2 && tp.getNodes().get(random1).getNeighbors().size() < delta && tp.getNodes().get(random2).getNeighbors().size() < delta) {
-                Link link12 = new Link(tp.getNodes().get(random1), tp.getNodes().get(random2));
-                Link link21 = new Link(tp.getNodes().get(random2), tp.getNodes().get(random1));
-                if (!tp.getLinks().contains(link12) && !tp.getLinks().contains(link21)) {
-                    tp.addLink(link12);
-                }
-            } else if (tp.getNodes().get(random1).getNeighbors().size() == delta || tp.getNodes().get(random2).getNeighbors().size() == delta){
-                iteration++;
-            }
-            if (!isconnect && Connectivity.isConnected(tp)) {
-                isconnect = true;
-            }
-            if (iteration > 4*nbMaxlinks) {
-                if (isconnect) {
-                    end = true;
-                } /*else {
-                    log.debug(String.format("%s[createGraph] clearLinks", LOGGER));
-                    removeLinks(tp, Math.round(tp.getLinks().size()/2));
-                }*/
+    private static long generateLinksFairCircle(Topology tp, int nbNodes, double delta, Random r, long iteration) {
+        int random1 = r.nextInt(nbNodes);
+        int random2 = r.nextInt(nbNodes);
+        while (random1 == random2){
+            random1 = r.nextInt(nbNodes);
+            random2 = r.nextInt(nbNodes);
+        }
+        if (tp.getNodes().get(random1).getNeighbors().size() < delta && tp.getNodes().get(random2).getNeighbors().size() < delta) {
+            Link link12 = new Link(tp.getNodes().get(random1), tp.getNodes().get(random2));
+            Link link21 = new Link(tp.getNodes().get(random2), tp.getNodes().get(random1));
+            if (!tp.getLinks().contains(link12) && !tp.getLinks().contains(link21)) {
+                tp.addLink(link12);
             }
         }
-    }
-
-    private static void removeLinks(Topology tp, int nbLinks) {
-        while(tp.getLinks().size() > nbLinks) {
-            log.debug(String.format("%s[createGraph] clearLinks %d , %d", LOGGER, tp.getLinks().size(), nbLinks));
-            tp.removeLink(tp.getLinks().get(0));
+        if (tp.getNodes().get(random1).getNeighbors().size() == delta || tp.getNodes().get(random2).getNeighbors().size() == delta){
+            iteration++;
         }
+        return iteration;
     }
 
     private static void generateLinksCircle(Topology tp, int nbNodes) {
         /*Création du k-ieme liens entre le noeuds k-1 -> k ou k -> 0*/
         for (int k = 0 ; k < nbNodes ; k++) {
             if (k >= 1) {
-                tp.addLink(
-                        new Link(
-                                tp.getNodes().get(k - 1),
-                                tp.getNodes().get(k)
-                        )
-                );
+                tp.addLink(new Link(tp.getNodes().get(k - 1), tp.getNodes().get(k)));
             }
             if (k == nbNodes - 1) {
-                tp.addLink(
-                        new Link(
-                                tp.getNodes().get(k),
-                                tp.getNodes().get(0)
-                        )
-                );
+                tp.addLink(new Link(tp.getNodes().get(k), tp.getNodes().get(0)));
+            }
+        }
+    }
+
+    private static void generateLinksTwoCircle(Topology tp, int nbNodes) {
+        /*Création du k-ieme liens entre le noeuds k-1 -> k ou k -> 0*/
+        generateLinksCircle(tp, nbNodes);
+        for (int k = nbNodes ; k < 2*nbNodes ; k++) {
+            if (k >= nbNodes + 1) {
+                tp.addLink(new Link(tp.getNodes().get(k - 1), tp.getNodes().get(k)));
+            }
+            if (k == 2*nbNodes - 1) {
+                tp.addLink(new Link(tp.getNodes().get(k), tp.getNodes().get(nbNodes)));
             }
         }
     }
@@ -171,12 +221,7 @@ public class DynamicTopologyGenerator {
         /*Création du k-ieme liens entre le noeuds k-1 -> k ou k -> 0*/
         for (int k = 0 ; k < nbNodes ; k++) {
             if (k >= 1) {
-                tp.addLink(
-                        new Link(
-                                tp.getNodes().get(k - 1),
-                                tp.getNodes().get(k)
-                        )
-                );
+                tp.addLink(new Link(tp.getNodes().get(k - 1), tp.getNodes().get(k)));
             }
         }
     }
@@ -184,62 +229,22 @@ public class DynamicTopologyGenerator {
     private static void generateLinksStar(Topology tp, int nbNodes) {
         /*Création du k-ieme liens entre le noeuds k-1 -> k ou k -> 0*/
         for (int k = 1 ; k < nbNodes ; k++) {
-            tp.addLink(
-                    new Link(
-                            tp.getNodes().get(0),
-                            tp.getNodes().get(k)
-                    )
-            );
+            tp.addLink(new Link(tp.getNodes().get(0), tp.getNodes().get(k)));
         }
     }
 
-    private static boolean generateLinksDenseCircle(Topology tp, int nbNodes, long nbLinks, Random numberRandom, boolean isconnect) {
+    private static void generateLinksDenseCircle(Topology tp, int nbNodes, long nbLinks, Random numberRandom) {
+        int random1;
+        int random2;
         for (int link = 0 ; link < nbLinks ; link++) {
-            int random1 = numberRandom.nextInt(nbNodes);
-            int random2 = numberRandom.nextInt(nbNodes);
-            log.debug(String.format("%s rand1 %s", LOGGER,random1));
-            log.debug(String.format("%s rand2 %s", LOGGER, random2));
-            if (random1 != random2) {
-                tp.addLink(
-                        new Link(
-                                tp.getNodes().get(random1),
-                                tp.getNodes().get(random2)
-                        )
-                );
+            random1 = numberRandom.nextInt(nbNodes);
+            random2 = numberRandom.nextInt(nbNodes);
+            while (random1 == random2) {
+                random1 = numberRandom.nextInt(nbNodes);
+                random2 = numberRandom.nextInt(nbNodes);
             }
-            if (Connectivity.isConnected(tp)) {
-                isconnect = true;
-            } else {
-                tp.restart();
-            }
+            tp.addLink(new Link(tp.getNodes().get(random1), tp.getNodes().get(random2)));
         }
-        return isconnect;
-    }
-
-
-    public static List<Link> addRegularInnerLinks(Topology tp, int nbNodes, int jump) {
-        List<Link> innerLinks = new ArrayList<>();
-
-        for (int i = 0; i < nbNodes - nbNodes / jump + 1; i = i + nbNodes / jump) {
-            if (i < nbNodes - nbNodes / jump) {
-                Link innerLink = new Link(
-                        tp.getNodes().get(i),
-                        tp.getNodes().get(i + nbNodes / jump)
-                );
-                tp.addLink(innerLink);
-                innerLinks.add(innerLink);
-            }
-            if (i == nbNodes - nbNodes / jump) {
-                Link innerLink = new Link(
-                        tp.getNodes().get(i),
-                        tp.getNodes().get(0)
-                );
-                tp.addLink(innerLink);
-                innerLinks.add(innerLink);
-            }
-        }
-        //*Return des liens intèrieurs*//*
-        return innerLinks;
     }
 
     public static void generateTopo(Topology tp, int[] x, int[] y, int[][] link, double delta, double c) {
@@ -251,12 +256,10 @@ public class DynamicTopologyGenerator {
             if (i == 0) {
                 nodes.add(new NodeLeader(delta, c));
             } else {
-                nodes.add(new AnonymousNode(delta, c));
+                nodes.add(new NodeAnonymous(delta, c));
             }
         }
-        nodes.forEach(node -> {
-            tp.addNode(x[nodes.indexOf(node)], y[nodes.indexOf(node)], node);
-        });
+        nodes.forEach(node -> tp.addNode(x[nodes.indexOf(node)], y[nodes.indexOf(node)], node));
         for (int i = 0; i < link.length; i++) {
             tp.addLink(new Link(nodes.get(link[i][0]), nodes.get(link[i][1])));
         }
@@ -298,6 +301,5 @@ public class DynamicTopologyGenerator {
         int[] y = {200, 100, 150, 200, 50, 100, 150, 150, 200, 200};
         int[][] link = {{4, 1}, {1, 2}, {2, 3}, {0, 2}, {4, 5}, {5, 6}, {5, 7}, {7, 8}, {7, 9}};
         generateTopo(tp, x, y, link, delta, c);
-
     }
 }

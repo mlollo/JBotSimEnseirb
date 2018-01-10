@@ -1,12 +1,10 @@
-package enseirb.algo;
+package enseirb.ic;
 
-import enseirb.deterministic.Main;
+import enseirb.main.Main;
 import jbotsim.Message;
 import jbotsim.Node;
-import jdk.nashorn.internal.ir.Flags;
 import org.apache.log4j.Logger;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +36,7 @@ public class NodeLeader extends Node {
         this.energy = 0;
         this.energyArray = new ArrayList();
         this.c = c;
-        this.k = 3;
+        this.k = 4;
         this.round = getRound(this.k, this.c, this.delta);
         this.realRound = 0;
         this.initialTime = 0;
@@ -46,11 +44,11 @@ public class NodeLeader extends Node {
         this.wasCorrect = false;
         this.once = true;
         this.halt = false;
-        log.info(String.format("%s[Collection Phase] Number of iterations %s for k=%s", LOGGER, this.round, this.k));
+        //log.info(String.format("%s[Collection Phase] Number of iterations %s for k=%s", LOGGER, this.round, this.k));
         //System.out.println("ROUND " + round);
     }
 
-    private static double getRound(double k, double c, double delta) { return 2*k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)) ; }
+    private static double getRound(double k, double c, double delta) { return k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)) ; }
     public static double getICNumberOfIterations(double nbNodes, double delta, double c) {
         double iterations = 0;
         for(int k=3; k <= nbNodes; k++) {
@@ -154,7 +152,7 @@ public class NodeLeader extends Node {
                         this.isCorrect = true;
                         this.round = (int) getRound(k, delta, c);
                         this.realRound = 0;
-                        log.info(String.format("%s[Notification Phase] Number of iterations %s for k=%s", LOGGER, this.round/2, this.k));
+                        log.info(String.format("%s[Notification Phase] Number of iterations %s for k=%s", LOGGER, this.round, this.k));
                         log.info(String.format("%s[Notification Phase] Leader    %s CHANGEMENT de k=%s", LOGGER, this.getID(), this.k));
                     }
                 }

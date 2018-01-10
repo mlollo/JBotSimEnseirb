@@ -1,4 +1,4 @@
-package enseirb.algo;
+package enseirb.ic;
 
 import jbotsim.Link;
 import jbotsim.Node;
@@ -8,7 +8,7 @@ import jbotsim.Topology;
 import static jbotsimx.Connectivity.isConnected;
 
 
-// création de la topologie pour tester algo d'alessia
+// création de la topologie pour tester ic d'alessia
 public class TopoTest{
    Topology tp10;
     private Node n0;
@@ -42,11 +42,11 @@ public class TopoTest{
         this.round = k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k));
         this.tp10 = new Topology(1920,1080,false);
         /*this.n0 = new NodeLeader(3, 3);
-        this.n1 = new AnonymousNode(3, 3);
-        this.n2 = new AnonymousNode(3, 3);
-        this.n3 = new AnonymousNode(3, 3);
-        this.n4 = new AnonymousNode(3, 3);
-        this.n5 = new AnonymousNode(3, 3);*/
+        this.n1 = new NodeAnonymous(3, 3);
+        this.n2 = new NodeAnonymous(3, 3);
+        this.n3 = new NodeAnonymous(3, 3);
+        this.n4 = new NodeAnonymous(3, 3);
+        this.n5 = new NodeAnonymous(3, 3);*/
         this.n0 = new TauNodeLeader(k,c);
         this.n1 = new TauAnonymousNode(k,c);
         this.n2 = new TauAnonymousNode(k,c);
@@ -54,8 +54,8 @@ public class TopoTest{
         this.n4 = new TauAnonymousNode(k,c);
         this.n5 = new TauAnonymousNode(k,c);
 
-        /*this.n6 = new AnonymousNode(round);
-        this.n7 = new AnonymousNode(round);
+        /*this.n6 = new NodeAnonymous(round);
+        this.n7 = new NodeAnonymous(round);
         */
         /*this.l1 = new Link(n0,n1);
         this.l2 = new Link(n0,n2);

@@ -1,15 +1,14 @@
-package enseirb.algo;
+package enseirb.ic;
 
-import enseirb.deterministic.Main;
+import enseirb.main.Main;
 import jbotsim.Message;
 import jbotsim.Node;
 import org.apache.log4j.Logger;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnonymousNode extends Node{
+public class NodeAnonymous extends Node{
 
     private double round;
     private double delta ;
@@ -32,11 +31,11 @@ public class AnonymousNode extends Node{
     private static Logger log = Logger.getLogger(Main.class);
     private static final String LOGGER = "[Incremental Counting][NodeAnonymous]";
 
-    public AnonymousNode(double delta, double c) {
+    public NodeAnonymous(double delta, double c) {
         this.delta = delta;
         this.energy = 1;
         this.c = c;
-        this.k = 3;
+        this.k = 4;
         this.round = getRound(this.k, this.c, this.delta);
         this.energyArray = new ArrayList();
         this.realRound = 0;
@@ -47,7 +46,7 @@ public class AnonymousNode extends Node{
         //System.out.println("ROUND a" + round);
     }
 
-    private static double getRound(double k, double c, double delta) { return 2*k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)); }
+    private static double getRound(double k, double c, double delta) { return k* Math.ceil(Math.pow(2*delta,k)*(c +1)*Math.log(k)); }
 
     @Override
     public void onMessage (Message message){
@@ -161,11 +160,14 @@ public class AnonymousNode extends Node{
                     haltSent = true;
                 }
                 if (haltSent){
-                    log.info(String.format("%s[Notification Phase] Node %s Anonymous counts %s nodes in Topology after %s iterations", LOGGER, this.getID(), this.nodeNumber, this.realRound/2));
+                    log.info(String.format("%s[Notification Phase] Node %s Anonymous counts %s nodes in Topology after %s iterations", LOGGER, this.getID(), this.nodeNumber, this.realRound));
                     once = false;
-                    if (this.getID() == Math.ceil((nodeNumber - 1)/2)) {
-                        System.exit(0);
-                    }
+                    this.tempTime = this.getTime();
+                }
+            } else {
+                if (this.getTime() >= this.tempTime + 2*nodeNumber && this.getTime() <= this.tempTime + 3*nodeNumber && this.getTime() % 2 == 0) {
+                    System.exit(0);
+                    //log.info(String.format("%s[Notification Phase] Exit Node %s", LOGGER, this.getID()));
                 }
             }
         }

@@ -1,9 +1,9 @@
-package enseirb.algo;
+package enseirb.ic;
 
 import jbotsim.ui.JViewer;
 
 
-// classe permettant de test pour l'algo d'alessia
+// classe permettant de test pour l'ic d'alessia
 public class Compter {
         public static void main(String[] args) {
 

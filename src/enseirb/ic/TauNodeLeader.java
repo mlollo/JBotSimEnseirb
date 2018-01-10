@@ -1,4 +1,4 @@
-package enseirb.algo;
+package enseirb.ic;
 
 import jbotsim.Message;
 import jbotsim.Node;

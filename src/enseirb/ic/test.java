@@ -1,16 +1,11 @@
-package enseirb.algo;
-
-
-import jbotsim.Link;
-import jbotsim.Node;
-import jbotsim.Topology;
+package enseirb.ic;
 
 
 import static jbotsimx.Connectivity.isConnected;
 import jbotsim.ui.JViewer;
 
 
-// classe permettant de test pour l'algo d'alessia
+// classe permettant de test pour l'ic d'alessia
 public class test {
     public static void main(String[] args) {
 

@@ -1,15 +1,12 @@
-package enseirb.deterministic;
+package enseirb.dynamicity;
 
 import jbotsim.Link;
-import jbotsim.Node;
 import jbotsim.Topology;
 import jbotsim.event.ClockListener;
 import jbotsim.event.StartListener;
 import jbotsimx.Connectivity;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class DynamicNetwork implements StartListener, ClockListener{
@@ -21,7 +18,10 @@ public class DynamicNetwork implements StartListener, ClockListener{
     private Link savedLink;
     private int dynamicRound;
     private boolean isDynamicGraph;
-    private boolean isRandomDynamicNetwork;
+    private boolean isSemiRandom;
+    private boolean isRandom;
+    private double delta;
+    private int linksPerRound;
     private Random r;
 
     /***
@@ -29,32 +29,31 @@ public class DynamicNetwork implements StartListener, ClockListener{
      * @param tp nombre de noeuds
      * ***/
     public DynamicNetwork(Topology tp, int dynamicRound){
-        this.tp = tp;
-        tp.addStartListener(this);
-        tp.addClockListener(this);
-        this.dynamicRound = dynamicRound;
-        this.isDynamicGraph = true;
-        this.isRandomDynamicNetwork = false;
-        this.r = new Random();
+        this(tp, dynamicRound, false, false, 0, 0);
     }
+    public DynamicNetwork(Topology tp, int dynamicRound, boolean semiRandom){
+        this(tp, dynamicRound, semiRandom, false, 0, 0);
 
-    /***
-     * Initialisation de l'objet DynamicNetwork
-     * @param tp nombre de noeuds
-     * ***/
-    public DynamicNetwork(Topology tp, int dynamicRound, boolean random){
+    }
+    public DynamicNetwork(Topology tp, int dynamicRound, boolean semiRandom, boolean random, double delta){
+        this(tp, dynamicRound, semiRandom, random, delta, 0);
+    }
+    public DynamicNetwork(Topology tp, int dynamicRound, boolean semiRandom, boolean random, double delta, int linksPerRound){
         this.tp = tp;
         tp.addStartListener(this);
         tp.addClockListener(this);
         this.dynamicRound = dynamicRound;
         this.isDynamicGraph = true;
-        this.isRandomDynamicNetwork = random;
+        this.isSemiRandom = semiRandom;
+        this.isRandom = random;
+        this.delta = delta;
+        this.linksPerRound = linksPerRound;
         this.r = new Random();
     }
 
     public void onStart(){
         log.info(String.format("%s[onStart] Topology start", LOGGER));
-        this.initDynamicCircularLinks();
+        this.initRoundRobinLinks();
     }
 
     /***
@@ -65,7 +64,20 @@ public class DynamicNetwork implements StartListener, ClockListener{
         if (this.isDynamicGraph) {
             if (tp.getTime() != 0 && tp.getTime() % this.dynamicRound == 0) {
                 //log.info(String.format("%s[onClock] tp.getTime %s", LOGGER, tp.getTime()));
-                this.dynamicCircularLinks();
+                if (this.isRandom) {
+                    if (this.linksPerRound == 0) {
+                        this.addRandomLinks();
+                        this.roundRobinLinks();
+                    } else {
+                        for(int i = 0; i < this.linksPerRound; i++) {
+                            this.addRandomLinks();
+                            this.roundRobinLinks();
+                        }
+                    }
+                } else {
+                    this.tp.addLink(this.savedLink);
+                    this.roundRobinLinks();
+                }
             }
         }
     }
@@ -75,14 +87,14 @@ public class DynamicNetwork implements StartListener, ClockListener{
      * On retire le premier lien sauvegarder dans la liste
      *
      * ***/
-    private void initDynamicCircularLinks(){
-        this.savedLink = this.tp.getLinks().get(this.isRandomDynamicNetwork ? r.nextInt(tp.getNodes().size()) : 0);
+    private void initRoundRobinLinks(){
+        this.savedLink = this.tp.getLinks().get(this.isSemiRandom ? r.nextInt(tp.getNodes().size()) : 0);
         this.tp.removeLink(this.savedLink);
         boolean isconnect = Connectivity.isConnected(this.tp);
         int i = 0;
         while (!isconnect && i < this.tp.getLinks().size()) {
             this.tp.addLink(this.savedLink);
-            this.savedLink = this.tp.getLinks().get(this.isRandomDynamicNetwork ? r.nextInt(tp.getNodes().size()) : 0);
+            this.savedLink = this.tp.getLinks().get(this.isSemiRandom ? r.nextInt(tp.getNodes().size()) : 0);
             this.tp.removeLink(this.savedLink);
             isconnect = Connectivity.isConnected(this.tp);
             i++;
@@ -101,12 +113,11 @@ public class DynamicNetwork implements StartListener, ClockListener{
      * Retire un connecteur et en ajoute un de façon à ce que le graphe reste connexe
      *
      * ***/
-    private void dynamicCircularLinks() {
-        this.tp.addLink(this.savedLink);
+    private void roundRobinLinks() {
         boolean isconnect = false;
         Link testLink = null;
-        while(!isconnect) {
-            testLink = tp.getLinks().get(this.isRandomDynamicNetwork ? r.nextInt(tp.getNodes().size()) : 0);
+        while (!isconnect) {
+            testLink = tp.getLinks().get(this.isSemiRandom ? r.nextInt(tp.getNodes().size()) : 0);
             if (!testLink.equals(savedLink)) {
                 this.tp.removeLink(testLink);
                 if (Connectivity.isConnected(this.tp)) {
@@ -123,6 +134,33 @@ public class DynamicNetwork implements StartListener, ClockListener{
                 this.tp.removeLink(testLink);
                 this.tp.addLink(testLink);
                 log.debug(String.format("%s[onClock] testLink same as linkSaved : %s", LOGGER, testLink));
+            }
+        }
+    }
+
+    public void addRandomLinks() {
+        int nbNodes = this.tp.getNodes().size();
+        int random1;
+        int random2;
+        boolean isconnect = false;
+        while (!isconnect) {
+            random1 = r.nextInt(nbNodes);
+            random2 = r.nextInt(nbNodes);
+            while (random1 == random2){
+                random1 = r.nextInt(nbNodes);
+                random2 = r.nextInt(nbNodes);
+            }
+            if (this.tp.getNodes().get(random1).getNeighbors().size() < this.delta && this.tp.getNodes().get(random2).getNeighbors().size() < this.delta) {
+                Link link12 = new Link(this.tp.getNodes().get(random1), this.tp.getNodes().get(random2));
+                Link link21 = new Link(this.tp.getNodes().get(random2), this.tp.getNodes().get(random1));
+                if (!this.tp.getLinks().contains(link12) && !this.tp.getLinks().contains(link21)) {
+                    this.tp.addLink(link12);
+                    if (Connectivity.isConnected(this.tp)) {
+                        isconnect = true;
+                    } else {
+                        this.tp.removeLink(link12);
+                    }
+                }
             }
         }
     }
