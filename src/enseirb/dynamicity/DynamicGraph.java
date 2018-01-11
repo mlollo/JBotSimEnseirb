@@ -9,10 +9,10 @@ import org.apache.log4j.Logger;
 
 import java.util.Random;
 
-public class DynamicNetwork implements StartListener, ClockListener{
+public class DynamicGraph implements StartListener, ClockListener{
 
-    private static final Logger log = Logger.getLogger(DynamicNetwork.class);
-    private static final String LOGGER = "[Deterministic][Dynamic][Network]";
+    private static final Logger log = Logger.getLogger(DynamicGraph.class);
+    private static final String LOGGER = "[Dynamic][Graph]";
 
     private Topology tp;
     private Link savedLink;
@@ -25,20 +25,14 @@ public class DynamicNetwork implements StartListener, ClockListener{
     private Random r;
 
     /***
-     * Initialisation de l'objet DynamicNetwork
+     * Initialisation de l'objet DynamicGraph
      * @param tp nombre de noeuds
      * ***/
-    public DynamicNetwork(Topology tp, int dynamicRound){
-        this(tp, dynamicRound, false, false, 0, 0);
-    }
-    public DynamicNetwork(Topology tp, int dynamicRound, boolean semiRandom){
-        this(tp, dynamicRound, semiRandom, false, 0, 0);
-
-    }
-    public DynamicNetwork(Topology tp, int dynamicRound, boolean semiRandom, boolean random, double delta){
-        this(tp, dynamicRound, semiRandom, random, delta, 0);
-    }
-    public DynamicNetwork(Topology tp, int dynamicRound, boolean semiRandom, boolean random, double delta, int linksPerRound){
+    public DynamicGraph(Topology tp, int dynamicRound){ this(tp, dynamicRound, false, false, 0, 0, 0); }
+    public DynamicGraph(Topology tp, int dynamicRound, boolean semiRandom){ this(tp, dynamicRound, semiRandom, false, 0, 0, 0); }
+    public DynamicGraph(Topology tp, int dynamicRound, boolean semiRandom, boolean random, double delta){ this(tp, dynamicRound, semiRandom, random, delta, 0, 0); }
+    public DynamicGraph(Topology tp, int dynamicRound, boolean semiRandom, boolean random, double delta, int linksPerRound){ this(tp, dynamicRound, semiRandom, random, delta, linksPerRound, 0); }
+    public DynamicGraph(Topology tp, int dynamicRound, boolean semiRandom, boolean random, double delta, int linksPerRound, long seed){
         this.tp = tp;
         tp.addStartListener(this);
         tp.addClockListener(this);
@@ -48,7 +42,7 @@ public class DynamicNetwork implements StartListener, ClockListener{
         this.isRandom = random;
         this.delta = delta;
         this.linksPerRound = linksPerRound;
-        this.r = new Random();
+        this.r = (seed == 0) ? new Random() : new Random(seed);
     }
 
     public void onStart(){

@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class TopologyGenerator {
 
     private static final Logger log = Logger.getLogger(TopologyGenerator.class);
-    private static final String LOGGER = "[Dynamic][Topology][Generator]";
+    private static final String LOGGER = "[Topology][Generator]";
 
     public TopologyGenerator(){ }
 
@@ -32,7 +32,7 @@ public class TopologyGenerator {
     /***
      * Créer une constellation de noeuds circulaire
      * Créer un graphe en sauvegardant les connecteurs Link dans la liste links
-     * Modifie l'objet Topology tp qui appartient à l'objet DynamicNetwork
+     * Modifie l'objet Topology tp qui appartient à l'objet DynamicGraph
      *
      * @param tp aTopology
      * @param leader Noeud leader de l'algorithme
@@ -63,9 +63,9 @@ public class TopologyGenerator {
         generateLinksStar(tp, nbNodes);
     }
 
-    public static void generateDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int x, int y, int radius) {
+    public static void generateDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, long seed, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
-        Random numberRandom = new Random();
+        Random numberRandom = (seed == 0) ? new Random() : new Random(seed);
         boolean isconnect = false;
         long nbLinks =  Math.round(density * nbNodes*(nbNodes-1) / 2);
         log.debug(String.format("%s[Dense Circle] nblinks %s density %s", LOGGER, nbLinks, density));
@@ -87,13 +87,13 @@ public class TopologyGenerator {
         log.info(String.format("%s[Dense Circle] Output Density %f size links %s", LOGGER, (float)getDensity(tp, nbNodes), tp.getLinks().size()));
     }
 
-    public static void generateRandomDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, double err, int x, int y, int radius) {
+    public static void generateRandomDenseCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, double err, long seed, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
-        Random numberRandom = new Random();
+        Random numberRandom = (seed == 0) ? new Random() : new Random(seed);
         boolean isconnect = false;
-        int minDensity = (int) Math.round(100 *(density - err));
-        int maxDensity = (int) Math.round(100 *(density + err));
-        double randomDensity = ThreadLocalRandom.current().nextInt(minDensity, maxDensity + 1) / (double)100;
+        int minDensity = (int) Math.round(1000 *(density - err));
+        int maxDensity = (int) Math.round(1000 *(density + err));
+        double randomDensity = ThreadLocalRandom.current().nextInt(minDensity, maxDensity + 1) / (double)1000;
         long nbLinks =  Math.round(randomDensity * nbNodes*(nbNodes-1) / 2);
         log.info(String.format("%s[Dense Circle] nblinks %s density %s err %s input random density %s", LOGGER, nbLinks, density, err, randomDensity));
         long count = 0;
@@ -114,11 +114,11 @@ public class TopologyGenerator {
         log.info(String.format("%s[Dense Circle] Output Density %f size links %s", LOGGER, (float)getDensity(tp, nbNodes), tp.getLinks().size()));
     }
 
-    public static void  generateRandomFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int delta,int x, int y, int radius) {
+    public static void generateFairCircle(Topology tp, Node leader, List<? extends Node> anonymous, int nbNodes, double density, int delta, long seed, int x, int y, int radius) {
         generateNodesCircle(tp, leader, anonymous, nbNodes, x, y, radius);
         long nbMaxLinks = Math.round(nbNodes *(nbNodes - 1)/2);
         long nbLinks = Math.round(density * nbNodes * (nbNodes - 1) / 2);
-        Random r = new Random();
+        Random r = (seed == 0) ? new Random() : new Random(seed);
         boolean isconnect = false;
         long iteration = 0;
         boolean end = false;
